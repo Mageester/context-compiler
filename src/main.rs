@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
@@ -88,6 +86,13 @@ enum Commands {
         #[arg(long, short, default_value = "10")]
         limit: usize,
     },
+
+    /// Generate shell completion scripts
+    Completions {
+        /// Shell to generate completions for (bash, zsh, fish, powershell, elvish)
+        #[arg(value_enum)]
+        shell: clap_complete::Shell,
+    },
 }
 
 #[tokio::main]
@@ -122,6 +127,10 @@ async fn main() -> Result<()> {
         }
         Some(Commands::History { limit }) => {
             cli::cmd_history(limit).await?;
+        }
+        Some(Commands::Completions { shell }) => {
+            use clap::CommandFactory;
+            cli::cmd_completions(shell, &mut Args::command()).await?;
         }
         None if !args.task.is_empty() => {
             let task = args.task.join(" ");

@@ -4,7 +4,6 @@ use std::path::Path;
 use uuid::Uuid;
 
 use crate::embed::Embedder;
-use crate::index::IndexBuilder;
 use crate::signal::RelevanceEngine;
 use crate::store::{HistoryEntry, Store};
 use crate::trim::Trimmer;
@@ -13,15 +12,6 @@ use crate::trim::Trimmer;
 pub struct Compiler;
 
 impl Compiler {
-    /// Ensure the index exists, building it if needed.
-    pub fn ensure_index(path: &Path, store: &Store, embedder: &Embedder) -> Result<()> {
-        if store.file_count()? == 0 {
-            log::info!("No index found. Building initial index...");
-            IndexBuilder::build(path, store, embedder, false)?;
-        }
-        Ok(())
-    }
-
     /// Compile context for a natural language task.
     /// Returns (formatted_context_string, scored_files, total_tokens_trimmed).
     pub fn compile(

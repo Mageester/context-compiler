@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 /// The persistent index stored in .ctx/index.db
 pub struct Store {
     conn: Connection,
+    #[allow(dead_code)]
     path: PathBuf,
 }
 
@@ -155,6 +156,7 @@ impl Store {
         Ok(edges)
     }
 
+    #[allow(dead_code)]
     pub fn get_imports_for_file(&self, file_path: &str) -> Result<Vec<String>> {
         let stmt = self
             .conn
@@ -224,6 +226,7 @@ impl Store {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn remove_file(&self, path: &str) -> Result<()> {
         self.conn
             .execute("DELETE FROM files WHERE path = ?1", rusqlite::params![path])?;
@@ -235,14 +238,216 @@ impl Store {
     }
 }
 
+#[allow(dead_code)]
 pub fn ctx_dir(path: &Path) -> PathBuf {
     path.join(".ctx")
 }
 
+#[allow(dead_code)]
 pub fn ctx_db(path: &Path) -> PathBuf {
     ctx_dir(path).join("index.db")
 }
 
+#[allow(dead_code)]
 pub fn ctx_exists(path: &Path) -> bool {
     ctx_db(path).exists()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn setup_temp_store() -> (Store, tempfile::TempDir) {
+        let dir = tempfile::tempdir().unwrap();
+        let store = Store::open(dir.path()).unwrap();
+        (store, dir)
+    }
+
+    fn sample_embedding() -> Vec<f32> {
+        vec![0.1; 384]
+    }
+
+    #[test]
+    fn test_open_creates_dir_and_db() {
+        let dir = tempfile::tempdir().unwrap();
+        let _store = Store::open(dir.path()).unwrap();
+        assert!(dir.path().join(".ctx/index.db").exists());
+    }
+
+    #[test]
+    fn test_upsert_and_get_all_files() {
+        let (store, _dir) = setup_temp_store();
+        let file = FileEntry {
+            path: "src/main.rs".into(),
+            summary: "Main entry point".into(),
+            token_count: 100,
+            language: "rust".into(),
+            tree_hash: "abc123".into(),
+            embedding: Some(sample_embedding()),
+        };
+        store.upsert_file(&file).unwrap();
+        let files = store.get_all_files().unwrap();
+        assert_eq!(files.len(), 1);
+        assert_eq!(files[0].path, "src/main.rs");
+        assert_eq!(files[0].token_count, 100);
+    }
+
+    #[test]
+    fn test_upsert_replace_same_path() {
+        let (store, _dir) = setup_temp_store();
+        let f1 = FileEntry {
+            path: "lib.rs".into(),
+            summary: "old".into(),
+            token_count: 50,
+            language: "rust".into(),
+            tree_hash: "old".into(),
+            embedding: None,
+        };
+        let f2 = FileEntry {
+            path: "lib.rs".into(),
+            summary: "new".into(),
+            token_count: 200,
+            language: "rust".into(),
+            tree_hash: "new".into(),
+            embedding: None,
+        };
+        store.upsert_file(&f1).unwrap();
+        store.upsert_file(&f2).unwrap();
+        let files = store.get_all_files().unwrap();
+        assert_eq!(files.len(), 1);
+        assert_eq!(files[0].summary, "new");
+        assert_eq!(files[0].token_count, 200);
+    }
+
+    #[test]
+    fn test_file_count() {
+        let (store, _dir) = setup_temp_store();
+        assert_eq!(store.file_count().unwrap(), 0);
+        store
+            .upsert_file(&FileEntry {
+                path: "a.rs".into(),
+                summary: "".into(),
+                token_count: 0,
+                language: "rust".into(),
+                tree_hash: "".into(),
+                embedding: None,
+            })
+            .unwrap();
+        assert_eq!(store.file_count().unwrap(), 1);
+    }
+
+    #[test]
+    fn test_upsert_and_get_imports() {
+        let (store, _dir) = setup_temp_store();
+        let edge = ImportEdge {
+            from_path: "a.rs".into(),
+            to_path: "b.rs".into(),
+        };
+        store.upsert_import(&edge).unwrap();
+        let edges = store.get_imports().unwrap();
+        assert_eq!(edges.len(), 1);
+        assert_eq!(edges[0].from_path, "a.rs");
+    }
+
+    #[test]
+    fn test_import_dedup() {
+        let (store, _dir) = setup_temp_store();
+        let edge = ImportEdge {
+            from_path: "a.rs".into(),
+            to_path: "b.rs".into(),
+        };
+        store.upsert_import(&edge).unwrap();
+        store.upsert_import(&edge).unwrap();
+        assert_eq!(store.get_imports().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn test_history_roundtrip() {
+        let (store, _dir) = setup_temp_store();
+        let emb: Vec<f32> = vec![0.5; 384];
+        let entry = HistoryEntry {
+            id: "test-1".into(),
+            task: "fix bug".into(),
+            task_embedding: emb.clone(),
+            file_paths: vec!["src/main.rs".into()],
+            created_at: "2026-01-01T00:00:00Z".into(),
+        };
+        store.add_history(&entry).unwrap();
+        let hist = store.get_history(10).unwrap();
+        assert_eq!(hist.len(), 1);
+        assert_eq!(hist[0].task, "fix bug");
+        assert_eq!(hist[0].file_paths, vec!["src/main.rs"]);
+        // embedding should round-trip
+        assert_eq!(hist[0].task_embedding.len(), 384);
+        assert!((hist[0].task_embedding[0] - 0.5).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_history_limit() {
+        let (store, _dir) = setup_temp_store();
+        let emb: Vec<f32> = vec![0.0; 384];
+        for i in 0..5 {
+            store
+                .add_history(&HistoryEntry {
+                    id: format!("h-{}", i),
+                    task: format!("task {}", i),
+                    task_embedding: emb.clone(),
+                    file_paths: vec![],
+                    created_at: format!("2026-01-{:02}T00:00:00Z", i + 1),
+                })
+                .unwrap();
+        }
+        assert_eq!(store.get_history(3).unwrap().len(), 3);
+    }
+
+    #[test]
+    fn test_clear_files() {
+        let (store, _dir) = setup_temp_store();
+        store
+            .upsert_file(&FileEntry {
+                path: "a.rs".into(),
+                summary: "".into(),
+                token_count: 0,
+                language: "rust".into(),
+                tree_hash: "".into(),
+                embedding: None,
+            })
+            .unwrap();
+        store.clear().unwrap();
+        assert_eq!(store.file_count().unwrap(), 0);
+    }
+
+    #[test]
+    fn test_get_all_files_empty() {
+        let (store, _dir) = setup_temp_store();
+        assert!(store.get_all_files().unwrap().is_empty());
+    }
+
+    #[test]
+    fn test_get_imports_empty() {
+        let (store, _dir) = setup_temp_store();
+        assert!(store.get_imports().unwrap().is_empty());
+    }
+
+    #[test]
+    fn test_file_with_embedding_roundtrip() {
+        let (store, _dir) = setup_temp_store();
+        let emb: Vec<f32> = (0..384).map(|i| i as f32 * 0.01).collect();
+        store
+            .upsert_file(&FileEntry {
+                path: "embed.rs".into(),
+                summary: "embed test".into(),
+                token_count: 50,
+                language: "rust".into(),
+                tree_hash: "hash".into(),
+                embedding: Some(emb.clone()),
+            })
+            .unwrap();
+        let files = store.get_all_files().unwrap();
+        let retrieved = files[0].embedding.as_ref().unwrap();
+        assert_eq!(retrieved.len(), 384);
+        for i in 0..384 {
+            assert!((retrieved[i] - emb[i]).abs() < 1e-6);
+        }
+    }
 }

@@ -90,7 +90,110 @@ impl Embedder {
             .collect()
     }
 
+    #[allow(dead_code)]
     pub fn dimension() -> usize {
         EMBEDDING_DIM
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_embed_returns_correct_dimension() {
+        let embedder = Embedder::init().unwrap();
+        let vec = embedder.embed("fix the auth race condition");
+        assert_eq!(vec.len(), 384);
+    }
+
+    #[test]
+    fn test_embed_normalized() {
+        let embedder = Embedder::init().unwrap();
+        let vec = embedder.embed("add tests for payment webhook");
+        let magnitude: f32 = vec.iter().map(|x| x * x).sum::<f32>().sqrt();
+        assert!((magnitude - 1.0).abs() < 1e-5, "magnitude = {}", magnitude);
+    }
+
+    #[test]
+    fn test_embed_empty_text() {
+        let embedder = Embedder::init().unwrap();
+        let vec = embedder.embed("");
+        assert_eq!(vec.len(), 384);
+        // Empty text should result in zero vector (all 0.0)
+        let sum: f32 = vec.iter().sum();
+        assert_eq!(sum, 0.0);
+    }
+
+    #[test]
+    fn test_embed_similar_tasks_have_similar_vectors() {
+        let embedder = Embedder::init().unwrap();
+        let a = embedder.embed("fix login timeout bug");
+        let b = embedder.embed("resolve login timeout issue");
+        let c = embedder.embed("add new color theme for settings page");
+        let sim_ab = Embedder::cosine_similarity(&a, &b);
+        let sim_ac = Embedder::cosine_similarity(&a, &c);
+        assert!(
+            sim_ab > sim_ac,
+            "similar tasks should be more similar than different ones: {} vs {}",
+            sim_ab,
+            sim_ac
+        );
+    }
+
+    #[test]
+    fn test_cosine_similarity_identical() {
+        let v = vec![1.0, 0.0, 0.0];
+        assert!((Embedder::cosine_similarity(&v, &v) - 1.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_cosine_similarity_orthogonal() {
+        let a = vec![1.0, 0.0];
+        let b = vec![0.0, 1.0];
+        assert!((Embedder::cosine_similarity(&a, &b)).abs() < 1e-6);
+    }
+
+    #[test]
+    fn test_cosine_similarity_zero_vector() {
+        let zero = vec![0.0, 0.0];
+        let v = vec![1.0, 0.0];
+        assert_eq!(Embedder::cosine_similarity(&zero, &v), 0.0);
+        assert_eq!(Embedder::cosine_similarity(&v, &zero), 0.0);
+    }
+
+    #[test]
+    fn test_tokenize_code_identifiers() {
+        let words = Embedder::tokenize("AuthMiddleware");
+        assert!(words.contains(&"auth".to_string()));
+        assert!(words.contains(&"middleware".to_string()));
+    }
+
+    #[test]
+    fn test_tokenize_paths() {
+        let words = Embedder::tokenize("src/auth/middleware.ts");
+        assert!(words.contains(&"src".to_string()));
+        assert!(words.contains(&"auth".to_string()));
+        assert!(words.contains(&"middleware".to_string()));
+    }
+
+    #[test]
+    fn test_simple_hash_stable() {
+        let h1 = Embedder::simple_hash("auth");
+        let h2 = Embedder::simple_hash("auth");
+        assert_eq!(h1, h2);
+    }
+
+    #[test]
+    fn test_simple_hash_different() {
+        let h1 = Embedder::simple_hash("auth");
+        let h2 = Embedder::simple_hash("payment");
+        assert_ne!(h1, h2);
+    }
+
+    #[test]
+    fn test_tokenize_filters_short_words() {
+        let words = Embedder::tokenize("a b c d e f");
+        assert!(words.is_empty(), "all single-char words should be filtered");
     }
 }

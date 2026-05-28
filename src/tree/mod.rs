@@ -146,8 +146,8 @@ impl Parser {
                     }
                 }
                 "ruby"
-                    if (trimmed.starts_with("require ")
-                        || trimmed.starts_with("require_relative ")) =>
+                    if trimmed.starts_with("require ")
+                        || trimmed.starts_with("require_relative ") =>
                 {
                     imports.push(trimmed.to_string());
                 }

@@ -330,6 +330,13 @@ pub async fn cmd_history(limit: usize) -> Result<()> {
     Ok(())
 }
 
+/// Handle `ctx completions <shell>`
+pub async fn cmd_completions(shell: clap_complete::Shell, cmd: &mut clap::Command) -> Result<()> {
+    let name = cmd.get_name().to_string();
+    clap_complete::generate(shell, cmd, name, &mut std::io::stdout());
+    Ok(())
+}
+
 fn copy_to_clipboard(text: &str) -> Result<()> {
     let mut clipboard = arboard::Clipboard::new()?;
     clipboard.set_text(text)?;

@@ -26,6 +26,7 @@
     <button class="menu" aria-label="Open navigation" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
     <div class="nav-links">
       <a href="#install">Install</a>
+      <a href="#quick-test">Quick Test</a>
       <a href="#workflow">Workflow</a>
       <a href="#wiki">Wiki</a>
       <a href="#verify">Verification</a>
@@ -35,7 +36,7 @@
 
   <main id="top">
     <section class="hero reveal">
-      <div class="eyebrow"><span class="pulse"></span> Local Rust CLI for AI coding workflows</div>
+      <div class="eyebrow"><span class="pulse"></span> Local Rust CLI for AI coding workflows <span class="version-badge">v0.1.0</span></div>
       <h1>Natural language in.<br><span>Perfect AI context</span> out.</h1>
       <p class="hero-copy">Stop manually collecting files for Cursor, Claude Code, Codex, and other coding agents. Describe the job once — Context Compiler ranks the relevant files, trims noise, and produces a paste-ready context pack.</p>
       <div class="hero-actions">
@@ -44,16 +45,16 @@
       </div>
       <div class="terminal-card hero-terminal" aria-label="Command line demo">
         <div class="terminal-top"><span></span><span></span><span></span><strong>ctx demo</strong></div>
-        <pre><code><span class="prompt">$</span> ctx <span class="string">"fix the auth race condition"</span>
-<span class="muted">→ indexing repo if needed…</span>
-<span class="ok">✓</span> Selected 4 files · ~3.1K tokens
-
-  1. src/auth/middleware.ts      <span class="score">92%</span>
-  2. src/auth/session-store.ts   <span class="score">78%</span>
-  3. src/types/session.ts        <span class="score">71%</span>
-  4. tests/auth-race.test.ts     <span class="score">65%</span>
-
-<span class="ok">✓</span> Context copied to clipboard</code></pre>
+        <pre><code><span class="type-line"><span class="prompt">$</span> ctx <span class="string">"fix the auth race condition"</span></span>
+<span class="type-line"><span class="muted">→ indexing repo if needed…</span></span>
+<span class="type-line"><span class="ok">✓</span> Selected 4 files · ~3.1K tokens</span>
+<span class="type-line"></span>
+<span class="type-line">  1. src/auth/middleware.ts      <span class="score">92%</span></span>
+<span class="type-line">  2. src/auth/session-store.ts   <span class="score">78%</span></span>
+<span class="type-line">  3. src/types/session.ts        <span class="score">71%</span></span>
+<span class="type-line">  4. tests/auth-race.test.ts     <span class="score">65%</span></span>
+<span class="type-line"></span>
+<span class="type-line"><span class="ok">✓</span> Context copied to clipboard</span></code></pre>
       </div>
       <div class="metrics">
         <div><strong>100x</strong><span>faster setup</span></div>
@@ -70,12 +71,39 @@
         <p>The installer downloads a release binary when one exists. Until public releases are cut, it automatically falls back to building from GitHub source with Cargo.</p>
       </div>
       <div class="terminal-card">
-        <div class="terminal-top"><span></span><span></span><span></span><strong>install.sh</strong></div>
-        <pre><code>curl -fsSL https://context-compiler.pages.dev/install.sh | sh
+        <div class="terminal-top"><span></span><span></span><span></span><strong>install.sh</strong><button class="copy-btn" onclick="copyInstallCmd(this)" title="Copy install command"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
+        <pre><code>curl -fsSL https://ctx-compiler.getaxiom.ca/install.sh | sh
+
 
 # then, inside any repo
 ctx init
 ctx "add tests for the payment webhook"</code></pre>
+      </div>
+    </section>
+
+    <section class="verify-section reveal" id="quick-test">
+      <p class="label">Quick Test</p>
+      <h2>Verify it's working</h2>
+      <p>After installing, run this command to confirm <code>ctx</code> is on your PATH and ready to use.</p>
+      <div class="verify-cmd-card">
+        <div class="verify-cmd-top">
+          <span class="cmd-label">Command</span>
+          <code>ctx --version</code>
+          <button class="copy-verify-btn" onclick="copyVerifyCmd(this)" title="Copy verification command">
+            <span class="btn-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;vertical-align:middle;margin-right:3px"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</span>
+            <span class="btn-label-copied">✓ Copied</span>
+          </button>
+        </div>
+        <div class="verify-output" id="verify-output">
+          <span class="verify-prompt">$</span>
+          <span id="verify-typed"></span>
+          <span class="cursor-static" id="verify-cursor">▍</span>
+        </div>
+        <div class="verify-status" id="verify-status">
+          <span class="check">✓</span>
+          Expected: <span class="version">ctx 0.1.0</span>
+          &nbsp;·&nbsp; Click <strong>Copy</strong> above, then paste into your terminal
+        </div>
       </div>
     </section>
 
@@ -134,10 +162,172 @@ ctx "add tests for the payment webhook"</code></pre>
   </footer>
 
   <script>
+    // ── Scroll reveal ──
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible') })
     }, { threshold: 0.12 });
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // ── Typewriter for hero terminal ──
+    function initTypewriter() {
+      const container = document.querySelector('.hero-terminal code');
+      if (!container) return;
+      const lineEls = [...container.querySelectorAll('.type-line')];
+      if (!lineEls.length) return;
+
+      // Parse each line into typed segments (preserving styled spans)
+      const lineSegments = lineEls.map(el => {
+        const segs = [];
+        for (const node of el.childNodes) {
+          if (node.nodeType === 3) {
+            for (const ch of node.textContent) segs.push({ t:'text', c:ch });
+          } else if (node.nodeType === 1 && node.tagName === 'SPAN') {
+            const text = node.textContent;
+            const cn = node.className;
+            for (let i = 0; i < text.length; i++) {
+              segs.push({ t:'span', c:text[i], cn, first:i===0, last:i===text.length-1 });
+            }
+          }
+        }
+        return segs;
+      });
+
+      // Clear lines
+      lineEls.forEach(el => el.textContent = '');
+
+      const cursor = document.createElement('span');
+      cursor.className = 'cursor';
+      cursor.textContent = '▍';
+
+      let li = 0, si = 0, curSpan = null;
+
+      // Check reduced motion
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function type() {
+        if (li >= lineSegments.length) { cursor.remove(); return; }
+        const line = lineEls[li];
+        const segs = lineSegments[li];
+        if (si === 0) { line.textContent = ''; line.appendChild(cursor); }
+        if (si >= segs.length) {
+          cursor.remove(); curSpan = null; li++; si = 0;
+          if (li < lineSegments.length) setTimeout(type, reduced ? 50 : 280);
+          return;
+        }
+        const seg = segs[si];
+        if (seg.t === 'text') {
+          if (cursor.parentNode === line) line.insertBefore(document.createTextNode(seg.c), cursor);
+        } else if (seg.t === 'span') {
+          if (seg.first) {
+            const sp = document.createElement('span');
+            sp.className = seg.cn; sp.textContent = seg.c;
+            curSpan = sp;
+            if (cursor.parentNode === line) line.insertBefore(sp, cursor);
+          } else if (curSpan) {
+            curSpan.textContent += seg.c;
+            if (seg.last) curSpan = null;
+          }
+        }
+        si++;
+        if (!reduced) setTimeout(type, 18 + Math.random() * 30);
+        else setTimeout(type, 2);
+      }
+
+      // Start when hero is visible (or immediately if already visible)
+      const hero = document.querySelector('.hero');
+      if (hero && hero.classList.contains('visible')) {
+        setTimeout(type, reduced ? 50 : 600);
+      } else {
+        const heroObs = new MutationObserver(() => {
+          if (hero && hero.classList.contains('visible')) {
+            setTimeout(type, reduced ? 50 : 600);
+            heroObs.disconnect();
+          }
+        });
+        if (hero) heroObs.observe(hero, { attributes: true, attributeFilter: ['class'] });
+        // Fallback: start after 2s anyway
+        setTimeout(type, reduced ? 100 : 2000);
+      }
+    }
+
+    // ── Copy install command ──
+    function copyInstallCmd(btn) {
+      const cmd = 'curl -fsSL https://ctx-compiler.getaxiom.ca/install.sh | sh';
+      navigator.clipboard.writeText(cmd).then(() => {
+        btn.classList.add('copied');
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;flex-shrink:0"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy';
+        }, 2200);
+      }).catch(() => {
+        // Fallback for older browsers
+        const ta = document.createElement('textarea');
+        ta.value = cmd; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+        btn.classList.add('copied');
+        btn.innerHTML = '✓ Copied!';
+        setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '📋 Copy'; }, 2200);
+      });
+    }
+
+    // ── Copy verify command ──
+    function copyVerifyCmd(btn) {
+      const cmd = 'ctx --version';
+      navigator.clipboard.writeText(cmd).then(() => {
+        btn.classList.add('copied');
+        setTimeout(() => { btn.classList.remove('copied'); }, 2200);
+      }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = cmd; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+        btn.classList.add('copied');
+        setTimeout(() => { btn.classList.remove('copied'); }, 2200);
+      });
+      // Also animate the verify terminal output
+      animateVerifyOutput();
+    }
+
+    // ── Verify section typewriter animation ──
+    let verifyAnimated = false;
+    function animateVerifyOutput() {
+      if (verifyAnimated) return;
+      verifyAnimated = true;
+      const el = document.getElementById('verify-typed');
+      const cursor = document.getElementById('verify-cursor');
+      const text = 'ctx --version';
+      el.textContent = '';
+      let i = 0;
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function type() {
+        if (i < text.length) {
+          el.textContent += text[i];
+          i++;
+          setTimeout(type, reduced ? 5 : 40 + Math.random() * 30);
+        } else {
+          // Show result after a pause
+          setTimeout(() => {
+            const output = document.getElementById('verify-output');
+            const result = document.createElement('div');
+            result.className = 'verify-result-line';
+            result.innerHTML = '<span class="ok">✓</span> <span class="info">ctx</span> <span class="version">0.1.0</span> — ready to compile context';
+            output.appendChild(result);
+            if (cursor) cursor.style.animation = 'none';
+          }, reduced ? 100 : 500);
+        }
+      }
+      if (!reduced) setTimeout(type, 200);
+      else type();
+    }
+
+    // ── Start typewriter on load ──
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initTypewriter);
+    } else {
+      initTypewriter();
+    }
   </script>
 </body>
 </html>
