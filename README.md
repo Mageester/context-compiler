@@ -1,280 +1,110 @@
 # Context Compiler
 
-**Natural language → optimized AI context window.** Tell it what to build. Get exactly the files your AI coding agent needs. In seconds.
+**Natural language → optimized AI context window.** Describe a coding task and get a compact, ranked set of files for your AI coding agent.
 
 ```bash
 ctx "fix the race condition in auth middleware"
 
-# → auth-middleware.ts     ↑1.2K (92% relevant)
-# → session-store.ts       ↑0.8K (78% relevant)
-# → types/session.d.ts     ↑0.4K (71% relevant)
-# → concurrency/lock.ts    ↑0.9K (65% relevant)
-# ─────────────────────────────
-# 4 files · 4.2K tokens · copied to clipboard
+# → selected files ranked by relevance
+# → context trimmed to fit the token budget
+# → copied to clipboard when available
 ```
 
-<p align="center">
-  <img src="docs/hero.svg" alt="Context Compiler workflow" width="700">
-</p>
+Context Compiler is a local Rust CLI for preparing high-signal context packs for tools like Cursor, Claude Code, Codex, and other AI coding agents.
 
-## The Problem
-
-Every AI developer does this before starting a session:
-
-1. Hunt for which files are relevant
-2. Open them all in tabs
-3. Copy-paste into the AI chat
-4. Realize you forgot the types
-5. Copy-paste again
-6. The AI says "what about the session store?"
-7. Hunt for that too
-
-**This takes 5–15 minutes per session** and you're sending 10x more tokens than you need.
-
-## What Context Compiler Does
-
-It sits between you and your AI coding agent. You describe the task naturally, and it returns *exactly* the files the LLM needs — ranked by relevance, trimmed to fit, copied to clipboard.
-
-```
-┌─────────────────┐    ┌──────────────────┐    ┌──────────────────────┐
-│  "fix auth race" │───▶│  Context Compiler │───▶│  4 files · 4.2K tok  │
-│                  │    │  (builds index,   │    │  → clipboard ready   │
-│  847 files       │    │   scores by       │    │  → paste into Cursor │
-│  in codebase     │    │   relevance)      │    │  → start coding now  │
-└─────────────────┘    └──────────────────┘    └──────────────────────┘
-```
-
----
-
-## Features
-
-- **Triple-signal relevance engine** — semantic similarity (50%) + dependency graph (30%) + historical usage (20%)
-- **Smart trimming** — strips comments, logging, and boilerplate while keeping signatures, types, and logic
-- **Learns over time** — every session improves history signal for your codebase
-- **Zero config** — one command to index, one command to compile
-- **Local & private** — all embeddings run on-device. No API calls. No data leaves your machine
-- **Language-aware** — understands TypeScript, Python, Rust, Go, Java, Ruby, and 30+ languages via Tree-sitter
-
----
-
-## Quick Start
-
-### Install
+## Install
 
 ```bash
-curl -fsSL https://ctx-compiler.dev/install.sh | sh
+curl -fsSL https://ctx-compiler.getaxiom.ca/install.sh | sh
 ```
 
-Or with Homebrew:
+The installer tries the latest GitHub release binary first. If no release binary exists yet, it falls back to building from source with Cargo.
+
+Source install manually:
 
 ```bash
-brew install context-compiler/ctx
+git clone https://github.com/Mageester/context-compiler.git
+cd context-compiler
+cargo install --path .
 ```
 
-Or from source:
-
-```bash
-cargo install ctx
-```
-
-### First time
+## Quickstart
 
 ```bash
 cd your-project
-
-# Index your codebase (first run, builds the semantic index)
 ctx init
-
-# Compile context for a task
-ctx "add pagination to the user list API"
-
-# → 5 files · 6.2K tokens · copied to clipboard
-# Paste into your AI agent and start coding.
-```
-
-### Everyday use
-
-```bash
-ctx "fix the login timeout bug"
 ctx "add tests for the payment webhook handler"
-ctx "refactor the data layer to use async"
-ctx "what calls this function?"  # finds callers
-ctx "design an event system for order lifecycle"
 ```
 
----
-
-## How It Works
-
-### Architecture
-
-```
-┌────────────────────────────────────────────────────────────┐
-│                     Phase 1: Index                         │
-│                                                            │
-│  codebase/ ───→ Tree-sitter ───→ file summaries            │
-│  847 files    → AST parsing   → imports graph              │
-│                             ───→ ONNX embeddings           │
-│                                    ↓                       │
-│                              .ctx/index.db                 │
-│                              (SQLite + FTS5)               │
-└────────────────────────────────────────────────────────────┘
-                             │
-┌────────────────────────────────────────────────────────────┐
-│                     Phase 2: Compile                       │
-│                                                            │
-│  "fix auth race" ───→ embed task ───→ relevance engine     │
-│                           ↓             ↓                  │
-│                     .ctx/index.db    Signal 1: semantic    │
-│                                      Signal 2: dependency  │
-│                                      Signal 3: history     │
-│                                           ↓                │
-│                                     select top files       │
-│                                           ↓                │
-│                                     trim each file         │
-│                                           ↓                │
-│                                     4 files · 4.2K tokens  │
-│                                     → clipboard            │
-└────────────────────────────────────────────────────────────┘
-```
-
-### The Relevance Engine
-
-The compiler computes three signals for every file and combines them into a composite score:
-
-```python
-composite_score = (semantic × 0.5) + (dependency × 0.3) + (history × 0.2)
-```
-
-| Signal | Weight | What it measures |
-|--------|--------|-----------------|
-| **Semantic** | 50% | Cosine similarity between task embedding and file summary embedding |
-| **Dependency** | 30% | Propagation of relevance through the import graph |
-| **History** | 20% | Files used in past similar tasks (learning loop) |
-
-**The learning loop:** After every session, the task + file list is saved. Next time you ask something similar, history boosts the files that were useful before. After 10 sessions, the compiler knows your codebase intimately.
-
-### Trimmer
-
-Before returning context, each file is trimmed to remove noise:
-
-```typescript
-// Before: 500 lines, 12K tokens
-function authenticate(user: User, token: string): Promise<Session> {
-  // Validate the user token against the session store
-  // This is a safety-critical function
-  log.debug('authenticate called with user:', user.id);
-  const session = await sessionStore.findOrCreate(user, token);
-  // ...
-}
-
-// After: 80 lines, 1.6K tokens (keeps signatures, types, logic)
-function authenticate(user: User, token: string): Promise<Session> {
-  const session = await sessionStore.findOrCreate(user, token);
-  // ...
-}
-```
-
-Trimming saves **60-70% of tokens** while preserving 100% of the signal.
-
----
-
-## Comparison
-
-| | Manual | grep | Copilot/Cursor | RAG tools | **Context Compiler** |
-|---|---|---|---|---|---|
-| Understands code? | ✗ | ✗ | △ | △ | **✓** |
-| Ranks relevance? | ✗ | ✗ | △ | △ | **✓** |
-| Trims boilerplate? | ✗ | ✗ | ✗ | ✗ | **✓** |
-| Learns over time? | ✗ | ✗ | ✗ | ✗ | **✓** |
-| Offline / private? | ✓ | ✓ | △ | △ | **✓** |
-
----
+`ctx init` creates a local `.ctx/` index. Add `.ctx/` to `.gitignore`.
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `ctx init` | Index the current codebase (auto-runs on first compile) |
-| `ctx "task"` | Compile context for a natural language task |
-| `ctx compile -b 16k "task"` | Compile with larger token budget |
-| `ctx compile -m 5 "task"` | Max 5 files in output |
-| `ctx compile -o output.txt "task"` | Write to file instead of clipboard |
-| `ctx status` | Show index stats (files, languages, history) |
-| `ctx reindex` | Rebuild index from scratch |
-| `ctx watch` | Watch mode — auto-rebuild on file changes |
-| `ctx history` | Show past compilations |
-| `ctx done` | Mark last task as complete (saves to history) |
+- `ctx init [path]` — index a codebase.
+- `ctx init --force` — rebuild an existing index.
+- `ctx "task"` — shorthand compile with the default budget.
+- `ctx compile "task"` — explicit compile command.
+- `ctx compile -b 16000 -m 8 "task"` — custom token budget and max file count.
+- `ctx compile -o context.md "task"` — write context to a file.
+- `ctx compile --no-clipboard "task"` — print context to stdout.
+- `ctx status` — show index stats.
+- `ctx reindex [path]` — force rebuild.
+- `ctx watch [path]` — periodically rebuild while working.
+- `ctx history -l 20` — show previous compile tasks.
+- `ctx done` — mark the latest task complete for history learning.
 
----
+## How it works
 
-## Project Layout
+1. **Index:** walks the repo, parses supported code files, extracts summaries/imports, and stores metadata in `.ctx/index.db`.
+2. **Score:** embeds the task and each file summary/path with a local lexical embedding, then combines semantic, dependency, and history signals.
+3. **Select:** chooses top files within the token budget.
+4. **Trim:** removes obvious noise while preserving signatures, types, and logic.
+5. **Output:** copies the formatted context to clipboard or writes it to a file/stdout.
 
-```
-project/
-├── .ctx/                  # All Context Compiler data
-│   ├── index.db           # SQLite: embeddings, imports, history
-│   └── sessions/          # Session logs
-├── src/
-├── tests/
-└── .gitignore             # Add .ctx/
-```
+## Features
 
----
+- Local/private by default — no hosted API required for the current MVP.
+- Rust single-binary CLI.
+- SQLite-backed project index.
+- Tree-sitter language detection/parsing for common languages.
+- Shorthand task UX: `ctx "task"`.
+- Clipboard, file, and stdout output modes.
 
-## Tech Stack
+## Website and wiki
 
-| Component | Choice | Why |
-|-----------|--------|-----|
-| Language | **Rust** | Single binary, zero runtime, instant startup |
-| Code parsing | **Tree-sitter** | AST-level understanding, 40+ languages |
-| Embeddings | **ONNX Runtime** | Local inference, no API calls, privacy-first |
-| Storage | **SQLite + FTS5** | Embedded, ACID, full-text search |
-| CLI | **clap** | Standard, beautiful CLI framework |
-
----
+- Website: `https://ctx-compiler.getaxiom.ca`
+- Wiki: [`docs/WIKI.md`](docs/WIKI.md)
+- Install script: [`site/install.sh`](site/install.sh)
 
 ## Development
 
 ```bash
-# Build
-cargo build --release
-
-# Run
-./target/release/ctx init
-./target/release/ctx "your task"
-
-# Test
+cargo fmt
+cargo build
 cargo test
-
-# Watch mode
-cargo watch -x run
+cargo build --release
 ```
 
----
+Local website preview:
 
-## Roadmap
+```bash
+cd site
+python3 -m http.server 8080
+```
 
-- [x] File walker + Tree-sitter parsing
-- [x] SQLite index with FTS5
-- [x] Hash-based approximation embeddings
-- [ ] ONNX model bundling (all-MiniLM-L6-v2)
-- [ ] VS Code extension (right-click → compile context)
-- [ ] GitHub Action (auto-context in CI)
-- [ ] Agent mode (pipe context directly into AI agents)
-- [ ] Multi-project awareness
-- [ ] Semantic diff between task compilations
+## Repository layout
 
----
+```text
+src/                 Rust CLI source
+site/                Cloudflare Pages static site and install script
+docs/                Source-controlled wiki/docs
+.github/workflows/   CI
+```
+
+## Status
+
+MVP. The core CLI builds and runs locally. Public release binaries are not required for installation because the installer falls back to source builds when needed.
 
 ## License
 
 MIT
-
----
-
-<p align="center">
-  Built by <a href="https://github.com/Mageester">Aidan Magee</a> —
-  <a href="https://github.com/Mageester/context-compiler/issues">Report a problem</a> —
-  <a href="https://github.com/Mageester/context-compiler/discussions">Start a discussion</a>
-</p>

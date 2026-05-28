@@ -20,17 +20,17 @@ tokio = { version = "1", features = ["full"] }
 rusqlite = { version = "0.31", features = ["bundled"] }
 
 # Tree-sitter for code parsing
-tree-sitter = "0.22"
-tree-sitter-typescript = "0.22"
-tree-sitter-python = "0.21"
-tree-sitter-rust = "0.22"
-tree-sitter-go = "0.22"
-tree-sitter-java = "0.22"
-tree-sitter-ruby = "0.22"
-tree-sitter-javascript = "0.22"
+tree-sitter = "0.25"
+tree-sitter-typescript = "0.23"
+tree-sitter-python = "0.25"
+tree-sitter-rust = "0.24"
+tree-sitter-go = "0.25"
+tree-sitter-java = "0.23"
+tree-sitter-ruby = "0.23"
+tree-sitter-javascript = "0.25"
 
-# ONNX for local embeddings
-ort = "2.0"
+# ONNX for local embeddings (unused in current MVP — hash-based embedder used instead)
+# ort = { version = "2.0.0-rc.12", optional = true }
 
 # Serde for serialization
 serde = { version = "1", features = ["derive"] }

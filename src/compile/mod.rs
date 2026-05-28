@@ -1,7 +1,7 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
+use chrono::Utc;
 use std::path::Path;
 use uuid::Uuid;
-use chrono::Utc;
 
 use crate::embed::Embedder;
 use crate::index::IndexBuilder;
@@ -42,10 +42,18 @@ impl Compiler {
 
         // 3. Select top files within budget
         let selected = RelevanceEngine::select_top(scored, budget, max_files);
-        log::info!("Selected {} files within {} token budget", selected.len(), budget);
+        log::info!(
+            "Selected {} files within {} token budget",
+            selected.len(),
+            budget
+        );
 
         if selected.is_empty() {
-            return Ok(("// No relevant files found for this task.".to_string(), Vec::new(), 0));
+            return Ok((
+                "// No relevant files found for this task.".to_string(),
+                Vec::new(),
+                0,
+            ));
         }
 
         // 4. Format context with trimmed file contents

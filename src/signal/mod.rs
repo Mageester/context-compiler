@@ -2,7 +2,7 @@ use anyhow::Result;
 use std::collections::HashMap;
 
 use crate::embed::Embedder;
-use crate::store::{FileEntry, HistoryEntry, Store};
+use crate::store::{HistoryEntry, Store};
 
 /// The relevance engine: computes a composite score for every file.
 /// Combines semantic similarity, dependency graph, and historical usage.
@@ -24,9 +24,9 @@ impl RelevanceEngine {
     /// Score all files in the index against a task embedding.
     pub fn score(
         store: &Store,
-        embedder: &Embedder,
+        _embedder: &Embedder,
         task_embedding: &[f32],
-        task_text: &str,
+        _task_text: &str,
     ) -> Result<Vec<ScoredFile>> {
         let files = store.get_all_files()?;
         let imports = store.get_imports()?;
@@ -46,9 +46,7 @@ impl RelevanceEngine {
         // Find similar past tasks
         let similar_history: Vec<&HistoryEntry> = history
             .iter()
-            .filter(|h| {
-                Embedder::cosine_similarity(task_embedding, &h.task_embedding) > 0.3
-            })
+            .filter(|h| Embedder::cosine_similarity(task_embedding, &h.task_embedding) > 0.3)
             .collect();
 
         // Count how many times each file appeared in similar past contexts
@@ -81,7 +79,9 @@ impl RelevanceEngine {
 
             let score = semantic * 0.5 + dependency * 0.3 + history_score * 0.2;
 
-            if score > 0.05 {
+            // Keep a low floor: small repos and one-word tasks should still return
+            // useful candidates instead of a false "no files found".
+            if score > 0.0 {
                 scored.push(ScoredFile {
                     path: file.path.clone(),
                     summary: file.summary.clone(),
@@ -96,7 +96,11 @@ impl RelevanceEngine {
         }
 
         // Sort by score descending
-        scored.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        scored.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
 
         Ok(scored)
     }
@@ -105,7 +109,7 @@ impl RelevanceEngine {
     fn compute_dependency_score(
         file_path: &str,
         import_map: &HashMap<&str, Vec<&str>>,
-        base_semantic: f32,
+        _base_semantic: f32,
     ) -> f32 {
         // If a file has high semantic relevance, propagate to its dependencies.
         // Simplified: boost files that appear as dependencies of other files.
@@ -132,10 +136,7 @@ impl RelevanceEngine {
     }
 
     /// Compute history score based on past similar tasks
-    fn compute_history_score(
-        file_path: &str,
-        history_counts: &HashMap<&str, usize>,
-    ) -> f32 {
+    fn compute_history_score(file_path: &str, history_counts: &HashMap<&str, usize>) -> f32 {
         match history_counts.get(file_path) {
             Some(count) => {
                 let normalized = (*count as f32).min(10.0) / 10.0;
@@ -146,11 +147,7 @@ impl RelevanceEngine {
     }
 
     /// Select top files up to the given token budget.
-    pub fn select_top(
-        scored: Vec<ScoredFile>,
-        budget: usize,
-        max_files: usize,
-    ) -> Vec<ScoredFile> {
+    pub fn select_top(scored: Vec<ScoredFile>, budget: usize, max_files: usize) -> Vec<ScoredFile> {
         let mut selected = Vec::new();
         let mut total_tokens = 0;
 

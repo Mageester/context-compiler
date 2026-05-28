@@ -1,2 +1,5 @@
 # Context Compiler — Cloudflare Pages redirects
-/home / 301
+/home            /               301
+/docs            /#wiki          301
+/wiki            /#wiki          301
+/install         /#install       301

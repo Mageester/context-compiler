@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
@@ -19,8 +21,13 @@ mod trim;
     styles = cli::styles()
 )]
 struct Args {
+    /// Optional command. If omitted, remaining words are treated as the task to compile.
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
+
+    /// Natural-language task shorthand: ctx "fix auth race condition"
+    #[arg(value_name = "TASK", trailing_var_arg = true)]
+    task: Vec<String>,
 }
 
 #[derive(Subcommand)]
@@ -89,32 +96,41 @@ async fn main() -> Result<()> {
     let args = Args::parse();
 
     match args.command {
-        Commands::Init { path, force } => {
+        Some(Commands::Init { path, force }) => {
             cli::cmd_init(path.unwrap_or_default(), force).await?;
         }
-        Commands::Compile {
+        Some(Commands::Compile {
             task,
             budget,
             max_files,
             output,
             no_clipboard,
-        } => {
+        }) => {
             cli::cmd_compile(&task, budget, max_files, output, no_clipboard).await?;
         }
-        Commands::Status => {
+        Some(Commands::Status) => {
             cli::cmd_status().await?;
         }
-        Commands::Reindex { path } => {
+        Some(Commands::Reindex { path }) => {
             cli::cmd_reindex(path.unwrap_or_default()).await?;
         }
-        Commands::Watch { path } => {
+        Some(Commands::Watch { path }) => {
             cli::cmd_watch(path.unwrap_or_default()).await?;
         }
-        Commands::Done => {
+        Some(Commands::Done) => {
             cli::cmd_done().await?;
         }
-        Commands::History { limit } => {
+        Some(Commands::History { limit }) => {
             cli::cmd_history(limit).await?;
+        }
+        None if !args.task.is_empty() => {
+            let task = args.task.join(" ");
+            cli::cmd_compile(&task, 8192, 0, None, false).await?;
+        }
+        None => {
+            use clap::CommandFactory;
+            Args::command().print_help()?;
+            println!();
         }
     }
 

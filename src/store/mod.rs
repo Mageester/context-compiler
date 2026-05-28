@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -88,11 +88,10 @@ impl Store {
     }
 
     pub fn upsert_file(&self, entry: &FileEntry) -> Result<()> {
-        let embedding_blob = entry.embedding.as_ref().map(|v| {
-            v.iter()
-                .flat_map(|f| f.to_le_bytes())
-                .collect::<Vec<u8>>()
-        });
+        let embedding_blob = entry
+            .embedding
+            .as_ref()
+            .map(|v| v.iter().flat_map(|f| f.to_le_bytes()).collect::<Vec<u8>>());
         self.conn.execute(
             "INSERT OR REPLACE INTO files (path, summary, token_count, language, tree_hash, embedding)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
@@ -157,7 +156,7 @@ impl Store {
     }
 
     pub fn get_imports_for_file(&self, file_path: &str) -> Result<Vec<String>> {
-        let mut stmt = self
+        let stmt = self
             .conn
             .prepare("SELECT to_path FROM imports WHERE from_path = ?1")?
             .query_map(rusqlite::params![file_path], |row| row.get(0))?
@@ -213,24 +212,21 @@ impl Store {
     }
 
     pub fn file_count(&self) -> Result<usize> {
-        let count: i64 =
-            self.conn
-                .query_row("SELECT COUNT(*) FROM files", [], |row| row.get(0))?;
+        let count: i64 = self
+            .conn
+            .query_row("SELECT COUNT(*) FROM files", [], |row| row.get(0))?;
         Ok(count as usize)
     }
 
     pub fn clear(&self) -> Result<()> {
-        self.conn.execute_batch(
-            "DELETE FROM files; DELETE FROM imports; DELETE FROM files_fts;",
-        )?;
+        self.conn
+            .execute_batch("DELETE FROM files; DELETE FROM imports; DELETE FROM files_fts;")?;
         Ok(())
     }
 
     pub fn remove_file(&self, path: &str) -> Result<()> {
-        self.conn.execute(
-            "DELETE FROM files WHERE path = ?1",
-            rusqlite::params![path],
-        )?;
+        self.conn
+            .execute("DELETE FROM files WHERE path = ?1", rusqlite::params![path])?;
         self.conn.execute(
             "DELETE FROM imports WHERE from_path = ?1 OR to_path = ?1",
             rusqlite::params![path],

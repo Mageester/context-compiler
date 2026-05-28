@@ -1,8 +1,4 @@
 use anyhow::Result;
-use std::collections::HashMap;
-use std::path::Path;
-
-use crate::store::FileEntry;
 
 /// Language-aware code parser using Tree-sitter.
 /// Extracts: function/class names, docstrings, imports, approximate token count.
@@ -65,10 +61,18 @@ impl Parser {
             let trimmed = line.trim();
             if trimmed.starts_with("#!/") {
                 parts.push(trimmed.to_string());
-            } else if trimmed.starts_with("//") || trimmed.starts_with("#")
-                || trimmed.starts_with("/*") || trimmed.starts_with("--")
+            } else if trimmed.starts_with("//")
+                || trimmed.starts_with("#")
+                || trimmed.starts_with("/*")
+                || trimmed.starts_with("--")
             {
-                parts.push(trimmed.trim_start_matches(|c: char| c == '/' || c == '#' || c == '-' || c == '*' || c == ' ').to_string());
+                parts.push(
+                    trimmed
+                        .trim_start_matches(|c: char| {
+                            c == '/' || c == '#' || c == '-' || c == '*' || c == ' '
+                        })
+                        .to_string(),
+                );
             }
         }
 
@@ -76,13 +80,20 @@ impl Parser {
         let mut decls = Vec::new();
         for line in source.lines() {
             let trimmed = line.trim();
-            if trimmed.starts_with("pub ") || trimmed.starts_with("fn ")
-                || trimmed.starts_with("def ") || trimmed.starts_with("class ")
-                || trimmed.starts_with("function ") || trimmed.starts_with("export ")
-                || trimmed.starts_with("impl ") || trimmed.starts_with("struct ")
-                || trimmed.starts_with("enum ") || trimmed.starts_with("interface ")
-                || trimmed.starts_with("type ") || trimmed.starts_with("const ")
-                || trimmed.starts_with("func ") || trimmed.starts_with("async ")
+            if trimmed.starts_with("pub ")
+                || trimmed.starts_with("fn ")
+                || trimmed.starts_with("def ")
+                || trimmed.starts_with("class ")
+                || trimmed.starts_with("function ")
+                || trimmed.starts_with("export ")
+                || trimmed.starts_with("impl ")
+                || trimmed.starts_with("struct ")
+                || trimmed.starts_with("enum ")
+                || trimmed.starts_with("interface ")
+                || trimmed.starts_with("type ")
+                || trimmed.starts_with("const ")
+                || trimmed.starts_with("func ")
+                || trimmed.starts_with("async ")
             {
                 decls.push(trimmed);
                 if decls.len() >= 8 {
@@ -178,23 +189,8 @@ impl Parser {
             ".terraform",
         ];
         let ignored_ext = [
-            ".min.js",
-            ".min.css",
-            ".map",
-            ".svg",
-            ".png",
-            ".jpg",
-            ".jpeg",
-            ".gif",
-            ".ico",
-            ".woff",
-            ".woff2",
-            ".ttf",
-            ".eot",
-            ".mp4",
-            ".mp3",
-            ".wasm",
-            ".lock",
+            ".min.js", ".min.css", ".map", ".svg", ".png", ".jpg", ".jpeg", ".gif", ".ico",
+            ".woff", ".woff2", ".ttf", ".eot", ".mp4", ".mp3", ".wasm", ".lock",
         ];
 
         for dir in &ignored_dirs {

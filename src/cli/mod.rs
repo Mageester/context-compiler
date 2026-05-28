@@ -8,9 +8,6 @@ use crate::embed::Embedder;
 use crate::index::IndexBuilder;
 use crate::store::Store;
 
-/// CLI command implementations
-pub mod commands;
-
 /// Get colorful CLI styles
 pub fn styles() -> Styles {
     use clap::builder::styling;
@@ -180,7 +177,10 @@ pub async fn cmd_status() -> Result<()> {
     print_header(&format!("Context Compiler — Status"));
 
     if store.file_count()? == 0 {
-        println!("  No index found. Run {} to build one.", "ctx init".yellow());
+        println!(
+            "  No index found. Run {} to build one.",
+            "ctx init".yellow()
+        );
         return Ok(());
     }
 
@@ -191,10 +191,16 @@ pub async fn cmd_status() -> Result<()> {
     let total_tokens: usize = files.iter().map(|f| f.token_count).sum();
 
     println!("  Codebase:  {}", path.display().to_string().cyan());
-    println!("  Index:     {} files", files.len().to_string().green().bold());
+    println!(
+        "  Index:     {} files",
+        files.len().to_string().green().bold()
+    );
     println!("  Size:      ~{} tokens", total_tokens.to_string().yellow());
     println!("  Imports:   {} edges", imports.len().to_string().dimmed());
-    println!("  History:   {} past sessions", history.len().to_string().dimmed());
+    println!(
+        "  History:   {} past sessions",
+        history.len().to_string().dimmed()
+    );
     println!();
 
     // Top languages
@@ -244,13 +250,16 @@ pub async fn cmd_watch(path: PathBuf) -> Result<()> {
     }
 
     print_header(&format!("Context Compiler — Watch"));
-    println!("  Watching: {} for changes...", path.display().to_string().cyan());
+    println!(
+        "  Watching: {} for changes...",
+        path.display().to_string().cyan()
+    );
     println!("  Press Ctrl+C to stop.");
     println!();
 
     // Poll-based file watching (simple, no inotify dependency issues)
     let (tx, mut rx) = tokio::sync::mpsc::channel(100);
-    let watch_path = path.clone();
+    let _watch_path = path.clone();
 
     tokio::spawn(async move {
         let mut last_scan = std::time::Instant::now();
@@ -292,7 +301,10 @@ pub async fn cmd_history(limit: usize) -> Result<()> {
     print_header(&format!("Context Compiler — History"));
 
     if history.is_empty() {
-        println!("  No history yet. Run {} to start.", "ctx compile <task>".yellow());
+        println!(
+            "  No history yet. Run {} to start.",
+            "ctx compile <task>".yellow()
+        );
         return Ok(());
     }
 
@@ -307,7 +319,10 @@ pub async fn cmd_history(limit: usize) -> Result<()> {
             println!("     {}", path.dimmed());
         }
         if entry.file_paths.len() > 3 {
-            println!("     ... and {} more", (entry.file_paths.len() - 3).to_string().dimmed());
+            println!(
+                "     ... and {} more",
+                (entry.file_paths.len() - 3).to_string().dimmed()
+            );
         }
         println!();
     }

@@ -1,5 +1,4 @@
 use anyhow::Result;
-use std::path::Path;
 
 /// Local embedding engine using ONNX Runtime.
 /// Runs all-MiniLM-L6-v2 model in-process (no API calls needed).
@@ -18,13 +17,17 @@ impl Embedder {
     /// Embed a text string into a 384-dimensional vector.
     /// Falls back to a hash-based approximation if ONNX model isn't bundled yet.
     pub fn embed(&self, text: &str) -> Vec<f32> {
-        // Simple hash-based embedding for MVP.
-        // Each byte of the text contributes to a bucketed position.
+        // Lightweight lexical embedding for the MVP.
+        // It handles natural text plus code identifiers such as `auth_middleware`,
+        // `AuthMiddleware`, `src/compile/mod.rs`, and `ctx compile`.
         let mut vec = vec![0.0f32; EMBEDDING_DIM];
-        let text = text.to_lowercase();
-        let words: Vec<&str> = text.split_whitespace().collect();
+        let words = Self::tokenize(text);
 
-        for (i, word) in words.iter().enumerate() {
+        if words.is_empty() {
+            return vec;
+        }
+
+        for word in &words {
             let hash = Self::simple_hash(word);
             let pos = (hash as usize) % EMBEDDING_DIM;
             let freq = words.iter().filter(|w| *w == word).count() as f32;
@@ -60,6 +63,31 @@ impl Embedder {
             h = h.wrapping_mul(33).wrapping_add(b as u64);
         }
         h
+    }
+
+    /// Tokenize text and code identifiers into searchable terms.
+    fn tokenize(text: &str) -> Vec<String> {
+        let mut normalized = String::with_capacity(text.len() * 2);
+        let mut prev_lower_or_digit = false;
+
+        for ch in text.chars() {
+            if ch.is_ascii_alphanumeric() {
+                if ch.is_ascii_uppercase() && prev_lower_or_digit {
+                    normalized.push(' ');
+                }
+                normalized.push(ch.to_ascii_lowercase());
+                prev_lower_or_digit = ch.is_ascii_lowercase() || ch.is_ascii_digit();
+            } else {
+                normalized.push(' ');
+                prev_lower_or_digit = false;
+            }
+        }
+
+        normalized
+            .split_whitespace()
+            .filter(|w| w.len() > 1)
+            .map(ToString::to_string)
+            .collect()
     }
 
     pub fn dimension() -> usize {

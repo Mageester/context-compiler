@@ -1,5 +1,4 @@
 use anyhow::Result;
-use std::path::Path;
 
 use crate::signal::ScoredFile;
 
@@ -38,8 +37,10 @@ impl Trimmer {
             }
 
             // Skip single-line comments (keep docstrings)
-            if trimmed.starts_with("//") || trimmed.starts_with("# ")
-                || trimmed.starts_with("#!") || trimmed.starts_with("-- ")
+            if trimmed.starts_with("//")
+                || trimmed.starts_with("# ")
+                || trimmed.starts_with("#!")
+                || trimmed.starts_with("-- ")
             {
                 // Keep docstrings (///, /**)
                 if !trimmed.starts_with("///") && !trimmed.starts_with("/**") {
