@@ -145,10 +145,11 @@ impl Parser {
                         imports.push(trimmed.to_string());
                     }
                 }
-                "ruby" => {
-                    if trimmed.starts_with("require ") || trimmed.starts_with("require_relative ") {
-                        imports.push(trimmed.to_string());
-                    }
+                "ruby"
+                    if (trimmed.starts_with("require ")
+                        || trimmed.starts_with("require_relative ")) =>
+                {
+                    imports.push(trimmed.to_string());
                 }
                 _ => {}
             }
@@ -158,7 +159,7 @@ impl Parser {
 
     /// Count approximate tokens (4 chars per token heuristic)
     fn count_tokens(source: &str) -> usize {
-        (source.len() + 3) / 4
+        source.len().div_ceil(4)
     }
 
     /// Simple content hash for change detection

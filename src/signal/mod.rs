@@ -118,7 +118,7 @@ impl RelevanceEngine {
         // Check if this file is imported by high-scoring files
         let dependency_of = import_map
             .iter()
-            .filter(|(_, deps)| deps.iter().any(|d| *d == file_path))
+            .filter(|(_, deps)| deps.contains(&file_path))
             .count();
 
         if dependency_of > 0 {
@@ -138,10 +138,7 @@ impl RelevanceEngine {
     /// Compute history score based on past similar tasks
     fn compute_history_score(file_path: &str, history_counts: &HashMap<&str, usize>) -> f32 {
         match history_counts.get(file_path) {
-            Some(count) => {
-                let normalized = (*count as f32).min(10.0) / 10.0;
-                normalized
-            }
+            Some(count) => (*count as f32).min(10.0) / 10.0,
             None => 0.0,
         }
     }

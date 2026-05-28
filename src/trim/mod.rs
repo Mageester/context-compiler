@@ -11,9 +11,9 @@ impl Trimmer {
     /// Trim a file's content, keeping only the important parts.
     /// Returns (trimmed_content, original_tokens, trimmed_tokens).
     pub fn trim(source: &str, language: &str) -> Result<(String, usize, usize)> {
-        let original_tokens = (source.len() + 3) / 4;
+        let original_tokens = source.len().div_ceil(4);
         let trimmed = Self::trim_content(source, language);
-        let trimmed_tokens = (trimmed.len() + 3) / 4;
+        let trimmed_tokens = trimmed.len().div_ceil(4);
         Ok((trimmed, original_tokens, trimmed_tokens))
     }
 

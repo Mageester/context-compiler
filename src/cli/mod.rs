@@ -55,7 +55,7 @@ pub async fn cmd_init(path: PathBuf, force: bool) -> Result<()> {
         path
     };
 
-    print_header(&format!("Context Compiler — Init"));
+    print_header("Context Compiler — Init");
     println!("  Codebase: {}", path.display().to_string().cyan());
     println!();
 
@@ -99,7 +99,7 @@ pub async fn cmd_compile(
     let store = open_store(&path)?;
     let embedder = get_embedder()?;
 
-    print_header(&format!("Context Compiler — Compile"));
+    print_header("Context Compiler — Compile");
     println!("  Task:    {}", task.cyan());
     println!("  Budget:  {} tokens", budget.to_string().yellow());
     println!();
@@ -174,7 +174,7 @@ pub async fn cmd_status() -> Result<()> {
     let path = std::env::current_dir()?;
     let store = open_store(&path)?;
 
-    print_header(&format!("Context Compiler — Status"));
+    print_header("Context Compiler — Status");
 
     if store.file_count()? == 0 {
         println!(
@@ -209,7 +209,7 @@ pub async fn cmd_status() -> Result<()> {
         *lang_counts.entry(&file.language).or_default() += 1;
     }
     let mut lang_vec: Vec<_> = lang_counts.into_iter().collect();
-    lang_vec.sort_by(|a, b| b.1.cmp(&a.1));
+    lang_vec.sort_by_key(|item| std::cmp::Reverse(item.1));
 
     print_info("Languages:");
     for (lang, count) in lang_vec.iter().take(8) {
@@ -249,7 +249,7 @@ pub async fn cmd_watch(path: PathBuf) -> Result<()> {
         IndexBuilder::build(&path, &store, &embedder, false)?;
     }
 
-    print_header(&format!("Context Compiler — Watch"));
+    print_header("Context Compiler — Watch");
     println!(
         "  Watching: {} for changes...",
         path.display().to_string().cyan()
@@ -272,7 +272,7 @@ pub async fn cmd_watch(path: PathBuf) -> Result<()> {
         }
     });
 
-    while let Some(_) = rx.recv().await {
+    while rx.recv().await.is_some() {
         print_info("Codebase changed. Re-indexing...");
         // Clear and rebuild
         store.clear()?;
@@ -298,7 +298,7 @@ pub async fn cmd_history(limit: usize) -> Result<()> {
 
     let history = store.get_history(limit)?;
 
-    print_header(&format!("Context Compiler — History"));
+    print_header("Context Compiler — History");
 
     if history.is_empty() {
         println!(
