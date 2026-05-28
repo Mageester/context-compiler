@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Context Compiler — Natural language → optimized AI context</title>
+<meta name="description" content="Context Compiler: Tell it what to build. Get exactly the files your AI coding agent needs. 7x fewer tokens, 100x faster setup.">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+</style>
+</head>
+<body>
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav>
+  <a href="/" class="nav-logo">
+    <span class="dot"></span>
+    Context Compiler
+  </a>
+  <button class="mobile-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+  <ul class="nav-links">
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#engine">Engine</a></li>
+    <li><a href="#install">Install</a></li>
+    <li><a href="https://github.com/Mageester/context-compiler" target="_blank">GitHub →</a></li>
+  </ul>
+</nav>
+
+<div class="wrap">
+
+<!-- ═══════════ HERO ═══════════ -->
+<section class="hero">
+  <h1>Natural language →<br>optimized <span>AI context</span></h1>
+  <p class="subtitle">
+    Tell it what to build. Get exactly the files your AI coding agent needs.<br>
+    Ranked by relevance. Trimmed to fit. Copied to clipboard. In seconds.
+  </p>
+
+  <div class="cta-row">
+    <a href="#install" class="btn btn-primary">↓ Install</a>
+    <a href="https://github.com/Mageester/context-compiler" class="btn btn-secondary" target="_blank">GitHub →</a>
+    <a href="#architecture" class="btn btn-secondary">How it works</a>
+  </div>
+
+  <div class="demo-code">
+    <span class="g">$</span> ctx <span class="s">"fix the race condition in auth middleware"</span><br>
+    <span class="c"># Analyzing 847 files...</span><br>
+    <span class="c"># ─────────────────────────────────</span><br>
+    <span class="cy">auth-middleware.ts</span>     <span class="dim">↑</span><span class="g">1.2</span><span class="dim">K (92% relevant)</span><br>
+    <span class="cy">session-store.ts</span>       <span class="dim">↑</span><span class="g">0.8</span><span class="dim">K (78% relevant)</span><br>
+    <span class="cy">types/session.d.ts</span>     <span class="dim">↑</span><span class="g">0.4</span><span class="dim">K (71% relevant)</span><br>
+    <span class="cy">concurrency/lock.ts</span>    <span class="dim">↑</span><span class="g">0.9</span><span class="dim">K (65% relevant)</span><br>
+    <span class="c"># ─────────────────────────────────</span><br>
+    <span class="c"># 4 files · 3.1K tokens · copied to clipboard</span>
+  </div>
+</section>
+
+<!-- ═══════════ IN THREE WORDS ═══════════ -->
+<div class="diagram-box">
+<svg viewBox="0 0 900 200" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,BlinkMacSystemFont,'SF Pro Text',Inter,sans-serif">
+  <text x="450" y="28" text-anchor="middle" fill="#f0ede8" font-size="15" font-weight="500">In three words</text>
+  <rect x="50" y="50" width="220" height="80" rx="10" fill="rgba(248,113,113,.06)" stroke="rgba(248,113,113,.2)" stroke-width="1.5"/>
+  <text x="160" y="80" text-anchor="middle" fill="#f87171" font-size="16" font-weight="500">1. You describe</text>
+  <text x="160" y="105" text-anchor="middle" fill="#c5bfb2" font-size="13">what you want to do</text>
+  <text x="160" y="124" text-anchor="middle" fill="#8a847a" font-size="11">"Fix auth race condition"</text>
+  <path d="M270,90 L320,90" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#ah)"/>
+  <rect x="340" y="50" width="220" height="80" rx="10" fill="rgba(34,211,238,.06)" stroke="rgba(34,211,238,.2)" stroke-width="1.5"/>
+  <text x="450" y="80" text-anchor="middle" fill="#22d3ee" font-size="16" font-weight="500">2. It builds</text>
+  <text x="450" y="105" text-anchor="middle" fill="#c5bfb2" font-size="13">the perfect context</text>
+  <text x="450" y="124" text-anchor="middle" fill="#8a847a" font-size="11">4 files, 3.1K tokens</text>
+  <path d="M560,90 L610,90" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#ah)"/>
+  <rect x="630" y="50" width="220" height="80" rx="10" fill="rgba(52,211,153,.06)" stroke="rgba(52,211,153,.2)" stroke-width="1.5"/>
+  <text x="740" y="80" text-anchor="middle" fill="#34d399" font-size="16" font-weight="500">3. You paste</text>
+  <text x="740" y="105" text-anchor="middle" fill="#c5bfb2" font-size="13">and start coding</text>
+  <text x="740" y="124" text-anchor="middle" fill="#8a847a" font-size="11">Copy to clipboard → paste</text>
+  <defs>
+    <marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#22d3ee" opacity=".6"/>
+    </marker>
+  </defs>
+  <rect x="10" y="165" width="880" height="25" rx="6" fill="none"/>
+  <text x="450" y="183" text-anchor="middle" fill="#8a847a" font-size="13">
+    That's it. No accounts. No dashboards. No YAML config.
+    <tspan fill="#22d3ee">Natural language → optimized context → clipboard.</tspan>
+  </text>
+</svg>
+</div>
+
+<!-- ═══════════ PROBLEM ═══════════ -->
+<section id="problem">
+  <div class="section-label">The Problem</div>
+  <h2 class="section-title">Every AI developer wastes 10 minutes before every session</h2>
+  <p class="section-desc">
+    Hunting for files, copy-pasting, realizing you missed the types file, hunting again.
+    It's 40% of your workflow and the biggest unsolved bottleneck in AI-assisted development.
+  </p>
+
+  <div class="compared">
+    <div class="before">
+      <h3>😰 Before — Manual context assembly</h3>
+      <ol>
+        <li>Open <strong>12 tabs</strong> in your editor</li>
+        <li>Read through each file, decide relevance</li>
+        <li>Copy relevant sections one at a time</li>
+        <li>Paste into your coding agent</li>
+        <li>Realize you forgot the types file</li>
+        <li>Copy that too, re-paste</li>
+        <li>Agent: <em>"What's the UserSession interface?"</em></li>
+        <li>Hunt for that interface, paste again</li>
+        <li>Start coding <strong>5–15 minutes later</strong></li>
+        <li>Context: <strong style="color:#f87171">28,000 tokens</strong> (mostly noise)</li>
+      </ol>
+      <div style="margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);font-size:13px;color:#f87171">
+        ⏱️ ~10 min setup · 🧠 28K tokens · 💸 ~$0.05/call · 😫 Every. Single. Time.
+      </div>
+    </div>
+
+    <div class="after">
+      <h3>🤖 After — Context Compiler</h3>
+      <ol>
+        <li>Type: <code>ctx "fix auth race condition"</code></li>
+        <li>Compiler analyzes <strong>847 files</strong> in <strong>3.2 seconds</strong></li>
+        <li>Returns <strong>4 files, 3.1K tokens</strong></li>
+        <li>Automatically copies to clipboard</li>
+        <li>Paste into coding agent — exactly what it needs</li>
+        <li>Agent has types, interfaces, lock logic, test coverage</li>
+        <li>Start coding <strong>5 seconds later</strong></li>
+        <li>Context: <strong style="color:#34d399">3,100 tokens</strong> (100% relevant)</li>
+      </ol>
+      <div style="margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);font-size:13px;color:#34d399">
+        ⏱️ ~5 sec setup · 🧠 3.1K tokens · 💸 ~$0.005/call · 🎯 Every time, perfect.
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-grid card-grid-4" style="margin-top:24px">
+    <div class="stat-card">
+      <div class="val">100x</div>
+      <div class="lbl">faster setup</div>
+    </div>
+    <div class="stat-card">
+      <div class="val">7x</div>
+      <div class="lbl">fewer tokens</div>
+    </div>
+    <div class="stat-card">
+      <div class="val">6x</div>
+      <div class="lbl">cheaper API calls</div>
+    </div>
+    <div class="stat-card">
+      <div class="val">3x</div>
+      <div class="lbl">better agent responses</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ ARCHITECTURE ═══════════ -->
+<section id="architecture">
+  <div class="section-label">Architecture</div>
+  <h2 class="section-title">How it builds context</h2>
+  <p class="section-desc">
+    Four layers transform your natural language description into a perfect, token-budgeted context window.
+  </p>
+
+  <div class="diagram-box">
+  <svg viewBox="0 0 900 520" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,BlinkMacSystemFont,'SF Pro Text',Inter,sans-serif">
+    <defs>
+      <marker id="a" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6" fill="#22d3ee" opacity=".5"/>
+      </marker>
+    </defs>
+    <text x="450" y="28" text-anchor="middle" fill="#f0ede8" font-size="16" font-weight="500">Context Compiler Architecture</text>
+    <rect x="30" y="50" width="200" height="45" rx="8" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+    <text x="130" y="72" text-anchor="middle" fill="#f0ede8" font-size="14" font-weight="500">🧑‍💻 Developer</text>
+    <text x="130" y="88" text-anchor="middle" fill="#8a847a" font-size="11">"fix auth race condition"</text>
+    <line x1="230" y1="72" x2="280" y2="72" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#a)" opacity=".6"/>
+    <rect x="290" y="45" width="260" height="55" rx="8" fill="rgba(34,211,238,.06)" stroke="rgba(34,211,238,.2)" stroke-width="1"/>
+    <text x="420" y="68" text-anchor="middle" fill="#22d3ee" font-size="14" font-weight="500">Layer 1 — Intent Parser</text>
+    <text x="420" y="88" text-anchor="middle" fill="#c5bfb2" font-size="11">Tokenizes task → routes to code domain</text>
+    <line x1="550" y1="72" x2="600" y2="72" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#a)" opacity=".6"/>
+    <rect x="610" y="45" width="260" height="55" rx="8" fill="rgba(212,175,55,.06)" stroke="rgba(212,175,55,.2)" stroke-width="1"/>
+    <text x="740" y="68" text-anchor="middle" fill="#d4af37" font-size="14" font-weight="500">Layer 2 — Semantic Index</text>
+    <text x="740" y="88" text-anchor="middle" fill="#c5bfb2" font-size="11">Pre-built graph of codebase</text>
+    <line x1="420" y1="100" x2="420" y2="145" stroke="#22d3ee" stroke-width="1" opacity=".3" stroke-dasharray="4,3"/>
+    <line x1="740" y1="100" x2="740" y2="145" stroke="#d4af37" stroke-width="1" opacity=".3" stroke-dasharray="4,3"/>
+    <rect x="290" y="155" width="320" height="120" rx="8" fill="rgba(52,211,153,.06)" stroke="rgba(52,211,153,.2)" stroke-width="2"/>
+    <text x="450" y="180" text-anchor="middle" fill="#34d399" font-size="15" font-weight="500">⚡ Layer 3 — Relevance Engine</text>
+    <text x="450" y="200" text-anchor="middle" fill="#c5bfb2" font-size="12">Scores every file → ranks → selects</text>
+    <rect x="305" y="215" width="96" height="24" rx="5" fill="rgba(34,211,238,.1)" stroke="rgba(34,211,238,.2)"/>
+    <text x="353" y="232" text-anchor="middle" fill="#22d3ee" font-size="10">Semantic match</text>
+    <rect x="410" y="215" width="96" height="24" rx="5" fill="rgba(212,175,55,.1)" stroke="rgba(212,175,55,.2)"/>
+    <text x="458" y="232" text-anchor="middle" fill="#d4af37" font-size="10">Dependency graph</text>
+    <rect x="515" y="215" width="76" height="24" rx="5" fill="rgba(248,113,113,.1)" stroke="rgba(248,113,113,.2)"/>
+    <text x="553" y="232" text-anchor="middle" fill="#f87171" font-size="10">Import map</text>
+    <rect x="345" y="248" width="130" height="20" rx="5" fill="rgba(52,211,153,.08)" stroke="rgba(52,211,153,.15)"/>
+    <text x="410" y="263" text-anchor="middle" fill="#34d399" font-size="10">→ Composite relevance score</text>
+    <line x1="450" y1="275" x2="450" y2="310" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#a)" opacity=".6"/>
+    <rect x="290" y="320" width="320" height="55" rx="8" fill="rgba(34,211,238,.04)" stroke="rgba(34,211,238,.15)" stroke-width="1"/>
+    <text x="450" y="343" text-anchor="middle" fill="#22d3ee" font-size="14" font-weight="500">Layer 4 — Context Compiler</text>
+    <text x="450" y="363" text-anchor="middle" fill="#c5bfb2" font-size="11">Trims boilerplate · Keeps signatures · Fits token budget</text>
+    <line x1="450" y1="375" x2="450" y2="410" stroke="#22d3ee" stroke-width="1.5" marker-end="url(#a)" opacity=".6"/>
+    <rect x="290" y="420" width="320" height="75" rx="8" fill="rgba(52,211,153,.06)" stroke="rgba(52,211,153,.2)" stroke-width="2"/>
+    <text x="450" y="445" text-anchor="middle" fill="#34d399" font-size="14" font-weight="500">📋 Output</text>
+    <text x="450" y="465" text-anchor="middle" fill="#c5bfb2" font-size="12">4 files · 3.1K tokens · Clipboard-ready</text>
+    <text x="450" y="483" text-anchor="middle" fill="#8a847a" font-size="10">✅ middleware.ts ↑1.2K  ✅ types.ts ↑0.4K  ✅ lock.ts ↑0.9K  ✅ test ↑0.6K</text>
+    <rect x="30" y="350" width="200" height="145" rx="8" fill="rgba(255,255,255,.02)" stroke="rgba(255,255,255,.06)" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="130" y="375" text-anchor="middle" fill="#8a847a" font-size="12" font-weight="500">Codebase</text>
+    <line x1="50" y1="385" x2="210" y2="385" stroke="rgba(255,255,255,.04)"/>
+    <text x="130" y="408" text-anchor="middle" fill="#c5bfb2" font-size="11">📁 847 files</text>
+    <text x="130" y="428" text-anchor="middle" fill="#c5bfb2" font-size="11">🔗 3,200 imports</text>
+    <text x="130" y="448" text-anchor="middle" fill="#c5bfb2" font-size="11">🧬 410 types/interfaces</text>
+    <text x="130" y="468" text-anchor="middle" fill="#c5bfb2" font-size="11">📊 42 test files</text>
+    <text x="130" y="488" text-anchor="middle" fill="#8a847a" font-size="10">indexed in 3.2s</text>
+    <line x1="230" y1="430" x2="280" y2="430" stroke="#d4af37" stroke-width="1" opacity=".3" stroke-dasharray="4,3"/>
+  </svg>
+  </div>
+
+  <div class="card-grid card-grid-2" style="margin-top:24px">
+    <div class="card">
+      <h3 style="color:#22d3ee">🫀 Layer 1: Intent Parser</h3>
+      <p>Tokenizes your natural language task and identifies which code domains it touches — auth, database, UI, API, etc.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:#d4af37">🔗 Layer 2: Semantic Index</h3>
+      <p>A pre-built embedding index of every file in your codebase. Built once, queried instantly. Includes the full dependency graph.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:#34d399">⚡ Layer 3: Relevance Engine</h3>
+      <p>The brain. Scores every file using a composite of semantic similarity, dependency graph proximity, and past usage history.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:#f87171">✂️ Layer 4: Context Compiler</h3>
+      <p>Trims each file to keep only what matters — function signatures, types, core logic. Strips boilerplate, comments, dead code.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ RELEVANCE ENGINE ═══════════ -->
+<section id="engine">
+  <div class="section-label">The Brain</div>
+  <h2 class="section-title">Three signals that decide what matters</h2>
+  <p class="section-desc">
+    Given a natural language task + a codebase, the engine ranks every file by relevance using a composite score.
+  </p>
+
+  <div class="diagram-box">
+  <svg viewBox="0 0 900 440" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,BlinkMacSystemFont,'SF Pro Text',Inter,sans-serif">
+    <text x="450" y="28" text-anchor="middle" fill="#f0ede8" font-size="16" font-weight="500">Relevance Engine — Scoring Pipeline</text>
+    <rect x="50" y="50" width="800" height="50" rx="8" fill="rgba(34,211,238,.04)" stroke="rgba(34,211,238,.12)" stroke-width="1"/>
+    <text x="70" y="72" fill="#22d3ee" font-size="13" font-weight="500">Task:</text>
+    <text x="115" y="72" fill="#f0ede8" font-size="13" font-family="'SF Mono',monospace">"fix the race condition in the auth middleware that causes duplicate sessions"</text>
+    <line x1="450" y1="100" x2="450" y2="130" stroke="#22d3ee" stroke-width="1" opacity=".3"/>
+    <rect x="50" y="140" width="240" height="100" rx="8" fill="rgba(34,211,238,.04)" stroke="rgba(34,211,238,.15)" stroke-width="1"/>
+    <text x="170" y="165" text-anchor="middle" fill="#22d3ee" font-size="13" font-weight="500">Signal 1: Semantic</text>
+    <line x1="70" y1="175" x2="270" y2="175" stroke="rgba(255,255,255,.04)"/>
+    <text x="70" y="195" fill="#c5bfb2" font-size="11">Embed task → cosine similarity</text>
+    <text x="70" y="212" fill="#c5bfb2" font-size="11">vs every file's summary vector</text>
+    <text x="70" y="229" fill="#8a847a" font-size="10">auth-middleware.ts:  0.94 ⬤⬤⬤⬤⬤</text>
+    <text x="70" y="243" fill="#8a847a" font-size="10">oauth-provider.ts:   0.12 ⬤⬜⬜⬜⬜</text>
+    <line x1="290" y1="190" x2="330" y2="190" stroke="#d4af37" stroke-width="1" opacity=".4"/>
+    <rect x="340" y="140" width="240" height="100" rx="8" fill="rgba(212,175,55,.04)" stroke="rgba(212,175,55,.15)" stroke-width="1"/>
+    <text x="460" y="165" text-anchor="middle" fill="#d4af37" font-size="13" font-weight="500">Signal 2: Dependency</text>
+    <line x1="360" y1="175" x2="560" y2="175" stroke="rgba(255,255,255,.04)"/>
+    <text x="360" y="195" fill="#c5bfb2" font-size="11">What does auth-middleware import?</text>
+    <text x="360" y="212" fill="#c5bfb2" font-size="11">→ session-store.ts   +1.0 weight</text>
+    <text x="360" y="229" fill="#c5bfb2" font-size="11">→ UserSession type   +0.8 weight</text>
+    <text x="360" y="243" fill="#c5bfb2" font-size="11">→ rate-limiter.ts    +0.3 weight</text>
+    <line x1="580" y1="190" x2="620" y2="190" stroke="#d4af37" stroke-width="1" opacity=".4"/>
+    <rect x="630" y="140" width="220" height="100" rx="8" fill="rgba(52,211,153,.04)" stroke="rgba(52,211,153,.15)" stroke-width="1"/>
+    <text x="740" y="165" text-anchor="middle" fill="#34d399" font-size="13" font-weight="500">Signal 3: History</text>
+    <line x1="650" y1="175" x2="830" y2="175" stroke="rgba(255,255,255,.04)"/>
+    <text x="650" y="195" fill="#c5bfb2" font-size="11">Past sessions that touched</text>
+    <text x="650" y="212" fill="#c5bfb2" font-size="11">similar tasks:</text>
+    <text x="650" y="229" fill="#8a847a" font-size="10">session-store.ts    used 8x</text>
+    <text x="650" y="243" fill="#8a847a" font-size="10">concurrency/lock.ts  used 6x</text>
+    <line x1="170" y1="240" x2="170" y2="280" stroke="#22d3ee" stroke-width="1" opacity=".3"/>
+    <line x1="460" y1="240" x2="460" y2="280" stroke="#d4af37" stroke-width="1" opacity=".3"/>
+    <line x1="740" y1="240" x2="740" y2="280" stroke="#34d399" stroke-width="1" opacity=".3"/>
+    <rect x="50" y="290" width="800" height="55" rx="8" fill="rgba(34,211,238,.06)" stroke="rgba(34,211,238,.2)" stroke-width="1.5"/>
+    <text x="70" y="315" fill="#22d3ee" font-size="13" font-weight="500">Composite Score = (semantic × 0.5) + (dependency × 0.3) + (history × 0.2)</text>
+    <text x="70" y="337" fill="#c5bfb2" font-size="12">Ranked: <tspan fill="#34d399">auth-middleware.ts (0.92)</tspan> · <tspan fill="#34d399">session-store.ts (0.78)</tspan> · <tspan fill="#34d399">UserSession.d.ts (0.71)</tspan> · <tspan fill="#34d399">concurrency/lock.ts (0.65)</tspan> · <tspan fill="#8a847a">rate-limiter.ts (0.31)</tspan> · <tspan fill="#8a847a">oauth.ts (0.18)</tspan> · ...</text>
+    <line x1="260" y1="345" x2="260" y2="380" stroke="#f87171" stroke-width="1.5" opacity=".5"/>
+    <text x="220" y="375" fill="#f87171" font-size="12">Token budget cut</text>
+    <rect x="50" y="390" width="800" height="35" rx="8" fill="rgba(52,211,153,.06)" stroke="rgba(52,211,153,.2)" stroke-width="1"/>
+    <text x="260" y="413" text-anchor="middle" fill="#34d399" font-size="13" font-weight="500">✅ Selected: 4 files · 3.1K tokens (from 847 files · 3.2M tokens)</text>
+  </svg>
+  </div>
+
+  <div class="signal-grid">
+    <div class="signal-card" style="background:rgba(34,211,238,.03);border-color:rgba(34,211,238,.12)">
+      <span class="weight" style="background:rgba(34,211,238,.1);color:#22d3ee">50% weight</span>
+      <h4 style="color:#22d3ee">🫀 Semantic Signal</h4>
+      <p>The compiler pre-builds an embedding vector for every file — a summary of what each file does. When you describe your task, it finds the closest files by cosine similarity.<br><br>
+      <strong>"Fix auth race condition"</strong> is semantically closest to <strong>auth-middleware.ts</strong> because the embedding model knows "auth" + "race condition" = concurrency bug in auth code.</p>
+    </div>
+    <div class="signal-card" style="background:rgba(212,175,55,.03);border-color:rgba(212,175,55,.12)">
+      <span class="weight" style="background:rgba(212,175,55,.1);color:#d4af37">30% weight</span>
+      <h4 style="color:#d4af37">🔗 Dependency Signal</h4>
+      <p>The compiler builds a full dependency graph from your imports. When a file is relevant, its dependencies get bonus weight — ensuring the coding agent sees <em>why</em> the code works.<br><br>
+      <strong>auth-middleware.ts</strong> imports <strong>session-store.ts</strong> → gets included automatically.</p>
+    </div>
+    <div class="signal-card" style="background:rgba(52,211,153,.03);border-color:rgba(52,211,153,.12)">
+      <span class="weight" style="background:rgba(52,211,153,.1);color:#34d399">20% weight</span>
+      <h4 style="color:#34d399">📊 History Signal</h4>
+      <p>Learns from your past sessions. Files included in successful compilations for similar tasks get a bonus. Over time it gets more accurate at predicting what works for <em>your</em> codebase.<br><br>
+      <strong>session-store.ts</strong> was used 8x in past "auth" tasks → automatically boosted.</p>
+    </div>
+    <div class="signal-card" style="background:rgba(248,113,113,.03);border-color:rgba(248,113,113,.12)">
+      <span class="weight" style="background:rgba(248,113,113,.1);color:#f87171">✂️ After scoring</span>
+      <h4 style="color:#f87171">Trimmer — keep only what matters</h4>
+      <p>After ranking, each file is trimmed to remove boilerplate — keeping function signatures, type definitions, core logic. Strips comments, console.logs, and dead code.<br><br>
+      <strong>500-line file → 120-line context</strong>, preserving all the LLM needs.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ WORKFLOWS ═══════════ -->
+<section id="workflows">
+  <div class="section-label">Workflows</div>
+  <h2 class="section-title">Three ways to use Context Compiler</h2>
+  <p class="section-desc">CLI for daily use, API for integrations, agent mode for CI pipelines.</p>
+
+  <div class="diagram-box">
+  <svg viewBox="0 0 900 370" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,BlinkMacSystemFont,'SF Pro Text',Inter,sans-serif">
+    <text x="450" y="28" text-anchor="middle" fill="#f0ede8" font-size="15" font-weight="500">Three ways to use Context Compiler</text>
+    <rect x="30" y="50" width="260" height="290" rx="8" fill="rgba(34,211,238,.03)" stroke="rgba(34,211,238,.12)" stroke-width="1"/>
+    <text x="160" y="78" text-anchor="middle" fill="#22d3ee" font-size="14" font-weight="500">💻 CLI</text>
+    <line x1="50" y1="85" x2="270" y2="85" stroke="rgba(34,211,238,.1)"/>
+    <rect x="48" y="100" width="224" height="55" rx="6" fill="rgba(0,0,0,.4)" stroke="rgba(255,255,255,.06)"/>
+    <text x="62" y="118" fill="#34d399" font-size="11" font-family="'SF Mono',monospace">$ ctx "fix auth race"</text>
+    <text x="62" y="135" fill="#8a847a" font-size="11" font-family="'SF Mono',monospace">Analyzing 847 files...</text>
+    <text x="62" y="150" fill="#8a847a" font-size="11" font-family="'SF Mono',monospace">Context ready → clipboard</text>
+    <line x1="160" y1="155" x2="160" y2="175" stroke="#22d3ee" stroke-width="1" opacity=".3"/>
+    <rect x="60" y="185" width="200" height="70" rx="6" fill="rgba(52,211,153,.04)" stroke="rgba(52,211,153,.12)"/>
+    <text x="160" y="208" text-anchor="middle" fill="#34d399" font-size="12" font-weight="500">🔁 Learning loop</text>
+    <text x="160" y="228" text-anchor="middle" fill="#c5bfb2" font-size="11">Each use improves the</text>
+    <text x="160" y="244" text-anchor="middle" fill="#c5bfb2" font-size="11">history signal for next time</text>
+    <rect x="60" y="270" width="200" height="55" rx="6" fill="rgba(0,0,0,.4)" stroke="rgba(255,255,255,.06)"/>
+    <text x="160" y="292" text-anchor="middle" fill="#c5bfb2" font-size="11">Works in any directory</text>
+    <text x="160" y="310" text-anchor="middle" fill="#8a847a" font-size="10">ctx → builds index → ready</text>
+    <text x="160" y="326" text-anchor="middle" fill="#8a847a" font-size="10">Single binary, no server</text>
+    <rect x="320" y="50" width="260" height="290" rx="8" fill="rgba(212,175,55,.03)" stroke="rgba(212,175,55,.12)" stroke-width="1"/>
+    <text x="450" y="78" text-anchor="middle" fill="#d4af37" font-size="14" font-weight="500">🔌 API / Integrations</text>
+    <line x1="340" y1="85" x2="560" y2="85" stroke="rgba(212,175,55,.1)"/>
+    <rect x="338" y="100" width="224" height="60" rx="6" fill="rgba(0,0,0,.4)" stroke="rgba(255,255,255,.06)"/>
+    <text x="352" y="118" fill="#c5bfb2" font-size="11" font-family="'SF Mono',monospace">POST /compile</text>
+    <text x="352" y="135" fill="#8a847a" font-size="11" font-family="'SF Mono',monospace">{ "task": "fix auth race",</text>
+    <text x="352" y="152" fill="#8a847a" font-size="11" font-family="'SF Mono',monospace">  "path": "/project" }</text>
+    <line x1="450" y1="160" x2="450" y2="180" stroke="#d4af37" stroke-width="1" opacity=".3"/>
+    <rect x="350" y="190" width="200" height="65" rx="6" fill="rgba(52,211,153,.04)" stroke="rgba(52,211,153,.12)"/>
+    <text x="450" y="212" text-anchor="middle" fill="#34d399" font-size="12" font-weight="500">→ Returns JSON</text>
+    <text x="450" y="232" text-anchor="middle" fill="#c5bfb2" font-size="11">File list + compiled</text>
+    <text x="450" y="248" text-anchor="middle" fill="#c5bfb2" font-size="11">context text + metadata</text>
+    <rect x="350" y="270" width="200" height="55" rx="6" fill="rgba(0,0,0,.4)" stroke="rgba(255,255,255,.06)"/>
+    <text x="450" y="292" text-anchor="middle" fill="#c5bfb2" font-size="11">GitHub Action · VS Code</text>
+    <text x="450" y="308" text-anchor="middle" fill="#c5bfb2" font-size="11">CI · Cursor · Windsurf</text>
+    <text x="450" y="324" text-anchor="middle" fill="#8a847a" font-size="10">Anywhere an AI agent runs</text>
+    <rect x="610" y="50" width="260" height="290" rx="8" fill="rgba(52,211,153,.03)" stroke="rgba(52,211,153,.12)" stroke-width="1"/>
+    <text x="740" y="78" text-anchor="middle" fill="#34d399" font-size="14" font-weight="500">🤖 Agent Mode</text>
+    <line x1="630" y1="85" x2="850" y2="85" stroke="rgba(52,211,153,.1)"/>
+    <rect x="628" y="100" width="224" height="60" rx="6" fill="rgba(0,0,0,.4)" stroke="rgba(255,255,255,.06)"/>
+    <text x="642" y="118" fill="#c5bfb2" font-size="11" font-family="'SF Mono',monospace">$ ctx watch</text>
+    <text x="642" y="135" fill="#8a847a" font-size="11" font-family="'SF Mono',monospace">Watches your codebase</text>
+    <text x="642" y="152" fill="#8a847a" font-size="11" font-family="'SF Mono',monospace">Rebuilds index on changes</text>
+    <line x1="740" y1="160" x2="740" y2="180" stroke="#34d399" stroke-width="1" opacity=".3"/>
+    <rect x="640" y="190" width="200" height="65" rx="6" fill="rgba(34,211,238,.04)" stroke="rgba(34,211,238,.12)"/>
+    <text x="740" y="212" text-anchor="middle" fill="#22d3ee" font-size="12" font-weight="500">Auto-compile</text>
+    <text x="740" y="232" text-anchor="middle" fill="#c5bfb2" font-size="11">Any AI agent in your</text>
+    <text x="740" y="248" text-anchor="middle" fill="#c5bfb2" font-size="11">pipeline gets context</text>
+    <rect x="640" y="270" width="200" height="55" rx="6" fill="rgba(0,0,0,.4)" stroke="rgba(255,255,255,.06)"/>
+    <text x="740" y="292" text-anchor="middle" fill="#c5bfb2" font-size="11">CI pipeline injects</text>
+    <text x="740" y="308" text-anchor="middle" fill="#c5bfb2" font-size="11">context before agent runs</text>
+    <text x="740" y="324" text-anchor="middle" fill="#8a847a" font-size="10">$ ctx compile | agent chat</text>
+  </svg>
+  </div>
+</section>
+
+<!-- ═══════════ TECH STACK ═══════════ -->
+<section id="stack">
+  <div class="section-label">Tech Stack</div>
+  <h2 class="section-title">What powers it</h2>
+
+  <div class="card-grid card-grid-3">
+    <div class="card">
+      <h3 style="color:#22d3ee">🦀 Rust</h3>
+      <p>Single binary, native performance, no runtime. Needs to parse large codebases fast and run embeddings in-process. A single <code>curl | sh</code> install.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:#d4af37">🗃️ SQLite + FTS5</h3>
+      <p>Full-text search for file discovery. Embedded, zero-server, ACID. The index lives in a <code>.ctx/</code> folder inside your project — no daemons, no databases to manage.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:#34d399">🧠 ONNX Runtime</h3>
+      <p>Local, offline embedding. No API calls. Runs a mini model (all-MiniLM-L6-v2, 22MB) in-process. Works on a plane. Privacy by default — your code never leaves your machine.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ INSTALL ═══════════ -->
+<section id="install">
+  <div class="section-label">Get Started</div>
+  <h2 class="section-title">Install in one command</h2>
+  <p class="section-desc">
+    Single binary. No dependencies. No runtime. No accounts.
+  </p>
+
+  <div class="install-tabs" id="installTabs">
+    <div class="install-tab active" onclick="switchTab('macos')">macOS</div>
+    <div class="install-tab" onclick="switchTab('linux')">Linux</div>
+    <div class="install-tab" onclick="switchTab('windows')">Windows</div>
+    <div class="install-tab" onclick="switchTab('cargo')">Cargo</div>
+  </div>
+
+  <div class="code-block install-content active" id="tab-macos">
+    <span class="c"># macOS (Apple Silicon & Intel)</span><br>
+    curl -fsSL https://ctx-compiler.getaxiom.ca/install.sh | sh
+  </div>
+
+  <div class="code-block install-content" id="tab-linux">
+    <span class="c"># Linux (x86_64 & aarch64)</span><br>
+    curl -fsSL https://ctx-compiler.getaxiom.ca/install.sh | sh
+  </div>
+
+  <div class="code-block install-content" id="tab-windows">
+    <span class="c"># Windows (PowerShell)</span><br>
+    irm https://ctx-compiler.getaxiom.ca/install.ps1 | iex
+  </div>
+
+  <div class="code-block install-content" id="tab-cargo">
+    <span class="c"># Build from source</span><br>
+    cargo install context-compiler
+  </div>
+
+  <div class="highlight" style="margin-top:20px">
+    <strong style="color:#22d3ee">After install:</strong> cd into any codebase and run <code style="color:#34d399;background:rgba(52,211,153,.08);padding:2px 8px;border-radius:4px">ctx "describe your task"</code>
+  </div>
+
+  <h3 style="margin-top:40px;font-weight:500;font-size:18px">Commands</h3>
+
+  <table class="cmd-table">
+    <thead>
+      <tr><th>Command</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>ctx "task description"</td><td style="font-family:var(--font)">Compile context from natural language</td></tr>
+      <tr><td>ctx init</td><td style="font-family:var(--font)">Build the semantic index for this project</td></tr>
+      <tr><td>ctx status</td><td style="font-family:var(--font)">Show index health and file stats</td></tr>
+      <tr><td>ctx reindex</td><td style="font-family:var(--font)">Rebuild the index from scratch</td></tr>
+      <tr><td>ctx watch</td><td style="font-family:var(--font)">Watch filesystem, auto-reindex on changes</td></tr>
+      <tr><td>ctx history</td><td style="font-family:var(--font)">View past compilations and learning data</td></tr>
+      <tr><td>ctx done</td><td style="font-family:var(--font)">Stop watcher and save session to history</td></tr>
+      <tr><td>ctx config</td><td style="font-family:var(--font)">View or change configuration</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="margin-top:40px;font-weight:500;font-size:18px">VS Code + Cursor</h3>
+  <div class="code-block">
+    <span class="c"># Add to keybindings.json</span><br>
+    {<br>
+    &nbsp;&nbsp;<span class="s">"key"</span>: <span class="v">"ctrl+shift+c"</span>,<br>
+    &nbsp;&nbsp;<span class="s">"command"</span>: <span class="v">"workbench.action.terminal.sendSequence"</span>,<br>
+    &nbsp;&nbsp;<span class="s">"args"</span>: { <span class="s">"text"</span>: <span class="v">"ctx '${selectedText}'\\n"</span> }<br>
+    }
+  </div>
+</section>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+</div>
+
+<footer>
+  <div class="links">
+    <a href="https://github.com/Mageester/context-compiler">GitHub</a>
+    <a href="https://github.com/Mageester/context-compiler/blob/main/CONTRIBUTING.md">Contributing</a>
+    <a href="https://github.com/Mageester/context-compiler/blob/main/LICENSE">MIT License</a>
+  </div>
+  <div>Built by <a href="https://getaxiom.ca">Axiom International</a> · Context Compiler</div>
+</footer>
+
+<script>
+function switchTab(name) {
+  document.querySelectorAll('.install-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.install-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelectorAll('.install-tab').forEach(el => {
+    if (el.textContent.toLowerCase().includes(name)) el.classList.add('active');
+  });
+}
+document.querySelectorAll('.mobile-toggle').forEach(btn => {
+  btn.addEventListener('click', () => document.querySelector('.nav-links').classList.toggle('open'));
+});
+</script>
+
+</body>
+</html>
