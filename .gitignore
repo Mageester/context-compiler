@@ -1,0 +1,23 @@
+/target
+.ctx/
+*.ctx/
+ctx.db
+session_*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log

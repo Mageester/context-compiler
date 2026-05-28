@@ -1,0 +1,74 @@
+[package]
+name = "ctx"
+version = "0.1.0"
+edition = "2021"
+description = "Natural language → optimized AI context window. Tell it what to build, get exactly the files an LLM needs."
+authors = ["Aidan Magee <magee@axiom.team>"]
+license = "MIT"
+repository = "https://github.com/Mageester/context-compiler"
+keywords = ["context", "llm", "ai", "code", "cli"]
+categories = ["development-tools", "command-line-utilities"]
+
+[dependencies]
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# SQLite for persistent index
+rusqlite = { version = "0.31", features = ["bundled"] }
+
+# Tree-sitter for code parsing
+tree-sitter = "0.22"
+tree-sitter-typescript = "0.22"
+tree-sitter-python = "0.21"
+tree-sitter-rust = "0.22"
+tree-sitter-go = "0.22"
+tree-sitter-java = "0.22"
+tree-sitter-ruby = "0.22"
+tree-sitter-javascript = "0.22"
+
+# ONNX for local embeddings
+ort = "2.0"
+
+# Serde for serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# File watching
+notify = "6"
+
+# Progress bars
+indicatif = "0.17"
+
+# Clipboard
+arboard = "3"
+
+# Syntax highlighting in output
+syntect = "5"
+
+# Logging
+log = "0.4"
+env_logger = "0.10"
+
+# Error handling
+anyhow = "1"
+thiserror = "1"
+
+# Glob walking
+walkdir = "2"
+ignore = "0.4"
+
+# UUID for session tracking
+uuid = { version = "1", features = ["v4"] }
+
+# Time
+chrono = "0.4"
+
+# Colored output
+colored = "2"
+
+[[bin]]
+name = "ctx"
+path = "src/main.rs"
