@@ -15,7 +15,7 @@ Context Compiler is a local Rust CLI for preparing high-signal context packs for
 ## Install
 
 ```bash
-curl -fsSL https://ctx-compiler.getaxiom.ca/install.sh | sh
+curl -fsSL https://context-compiler.pages.dev/install.sh | sh
 ```
 
 The installer tries the latest GitHub release binary first. If no release binary exists yet, it falls back to building from source with Cargo.
@@ -72,7 +72,7 @@ ctx "add tests for the payment webhook handler"
 
 ## Website and wiki
 
-- Website: `https://ctx-compiler.getaxiom.ca`
+- Website: `https://context-compiler.pages.dev`
 - Wiki: [`docs/WIKI.md`](docs/WIKI.md)
 - Install script: [`site/install.sh`](site/install.sh)
 

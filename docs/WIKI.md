@@ -1,11 +1,11 @@
 # Context Compiler Wiki
 
-This wiki is the source-controlled companion to the hosted documentation at `https://ctx-compiler.getaxiom.ca/#wiki`.
+This wiki is the source-controlled companion to the hosted documentation at `https://context-compiler.pages.dev/#wiki`.
 
 ## Quickstart
 
 ```bash
-curl -fsSL https://ctx-compiler.getaxiom.ca/install.sh | sh
+curl -fsSL https://context-compiler.pages.dev/install.sh | sh
 cd your-project
 ctx init
 ctx "fix the auth race condition"
@@ -51,7 +51,7 @@ No release binaries exist yet, so the installer falls back to building from sour
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-curl -fsSL https://ctx-compiler.getaxiom.ca/install.sh | sh
+curl -fsSL https://context-compiler.pages.dev/install.sh | sh
 ```
 
 ### Clipboard does not work

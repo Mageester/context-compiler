@@ -1,6 +1,6 @@
 #!/bin/sh
 # Context Compiler install script
-# Usage: curl -fsSL https://ctx-compiler.getaxiom.ca/install.sh | sh
+# Usage: curl -fsSL https://context-compiler.pages.dev/install.sh | sh
 
 set -eu
 
@@ -66,7 +66,7 @@ install_from_source() {
     say ""
     say "Rust/Cargo is required for source install. Install Rust, then rerun:"
     say "  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
-    say "  curl -fsSL https://ctx-compiler.getaxiom.ca/install.sh | sh"
+    say "  curl -fsSL https://context-compiler.pages.dev/install.sh | sh"
     return 1
   }
 
@@ -104,7 +104,7 @@ if command -v ctx >/dev/null 2>&1; then
   say "  ctx init"
   say "  ctx 'fix the login timeout bug'"
   say ""
-  say "Docs: https://ctx-compiler.getaxiom.ca/#wiki"
+  say "Docs: https://context-compiler.pages.dev/#wiki"
 else
   say ""
   say "⚠ Installed to $INSTALL_DIR/$BIN but it is not on PATH."
