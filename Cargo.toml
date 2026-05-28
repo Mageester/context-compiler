@@ -1,6 +1,6 @@
 [package]
 name = "ctx"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Natural language → optimized AI context window. Tell it what to build, get exactly the files an LLM needs."
 authors = ["Aidan Magee <magee@axiom.team>"]
