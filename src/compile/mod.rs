@@ -30,8 +30,13 @@ impl Compiler {
         let scored = RelevanceEngine::score(store, embedder, &task_embedding, task)?;
         log::info!("Scored {} files", scored.len());
 
-        // 3. Select top files within budget
-        let selected = RelevanceEngine::select_top(scored, budget, max_files);
+        // 3. Format context with trimmed file contents while enforcing the requested budget.
+        let codebase_path = path.canonicalize()?;
+        let (context, total_trimmed, selected) =
+            Trimmer::format_context(&scored, task, budget, max_files, |file_path| {
+                let full_path = codebase_path.join(file_path);
+                std::fs::read_to_string(&full_path).ok()
+            });
         log::info!(
             "Selected {} files within {} token budget",
             selected.len(),
@@ -45,16 +50,6 @@ impl Compiler {
                 0,
             ));
         }
-
-        // 4. Format context with trimmed file contents
-        let codebase_path = path.canonicalize()?;
-        let context = Trimmer::format_context(&selected, task, |file_path| {
-            let full_path = codebase_path.join(file_path);
-            std::fs::read_to_string(&full_path).ok()
-        });
-
-        // 5. Calculate total trimmed tokens
-        let total_trimmed: usize = selected.iter().map(|f| f.token_count).sum();
 
         Ok((context, selected, total_trimmed))
     }

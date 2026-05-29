@@ -77,45 +77,109 @@ impl Trimmer {
             .join("\n")
     }
 
-    /// Format a compiled context output for a set of files
+    fn estimate_tokens(text: &str) -> usize {
+        text.len().div_ceil(4)
+    }
+
+    fn truncate_to_token_budget(text: &str, budget: usize) -> String {
+        if Self::estimate_tokens(text) <= budget {
+            return text.to_string();
+        }
+
+        let max_chars = budget.saturating_mul(4);
+        let mut end = 0;
+        for (idx, _) in text.char_indices() {
+            if idx > max_chars {
+                break;
+            }
+            end = idx;
+        }
+
+        let mut truncated = text[..end].trim_end().to_string();
+        truncated.push_str("\n// — hard-truncated to fit token budget —");
+        truncated
+    }
+
+    /// Format a compiled context output for a set of files while enforcing the token budget.
+    ///
+    /// Returns (formatted_context, estimated_tokens, selected_files). Token estimates use the
+    /// same cheap chars/4 heuristic as the rest of the CLI, so the displayed total matches the
+    /// generated output instead of the pre-trim source sizes.
     pub fn format_context(
         files: &[ScoredFile],
         task: &str,
+        budget: usize,
+        max_files: usize,
         read_source: impl Fn(&str) -> Option<String>,
-    ) -> String {
+    ) -> (String, usize, Vec<ScoredFile>) {
         let mut output = String::new();
+        let mut selected = Vec::new();
 
         output.push_str(&format!("// Context Compiler — task: {}\n", task));
-        output.push_str(&format!(
-            "// Files: {} · Total tokens: (trimmed)\n",
-            files.len()
-        ));
+        output.push_str("// Files: {files} · Estimated tokens: {tokens}\n");
         output.push_str("// ─────────────────────────────────────────\n\n");
 
         for file in files {
-            // File header
-            output.push_str(&format!(
-                "// ═══ {} — {} tok (score: {:.2}) ═══\n",
-                file.path, file.token_count, file.score
-            ));
-
-            // Read and trim the actual file content
-            if let Some(source) = read_source(&file.path) {
-                let language = &file.language;
-                if let Ok((trimmed, _orig, trimmed_tok)) = Self::trim(&source, language) {
-                    output.push_str(&trimmed);
-                    output.push_str(&format!("\n// — trimmed to {} tokens —", trimmed_tok));
-                } else {
-                    output.push_str(&source);
-                }
-            } else {
-                output.push_str(&format!("// File not found: {}\n", file.path));
+            if max_files > 0 && selected.len() >= max_files {
+                break;
             }
 
-            output.push_str("\n\n");
+            let Some(source) = read_source(&file.path) else {
+                continue;
+            };
+
+            let Ok((trimmed, _orig, trimmed_tok)) = Self::trim(&source, &file.language) else {
+                continue;
+            };
+
+            let header = format!(
+                "// ═══ {} — {} tok source, score: {:.2} ═══\n",
+                file.path, file.token_count, file.score
+            );
+            let footer = format!("\n// — trimmed to {} tokens —\n\n", trimmed_tok);
+            let mut block = format!("{}{}{}", header, trimmed, footer);
+
+            let current_tokens = Self::estimate_tokens(&output);
+            let block_tokens = Self::estimate_tokens(&block);
+
+            if current_tokens + block_tokens > budget {
+                if selected.is_empty() {
+                    let fixed_overhead = Self::estimate_tokens(&header)
+                        + Self::estimate_tokens(
+                            "\n// — trimmed from 0 tokens and hard-capped for budget —\n\n",
+                        );
+                    let remaining = budget.saturating_sub(current_tokens + fixed_overhead);
+                    let truncated = Self::truncate_to_token_budget(&trimmed, remaining);
+                    block = format!(
+                        "{}{}\n// — trimmed from {} tokens and hard-capped for budget —\n\n",
+                        header, truncated, trimmed_tok
+                    );
+                } else {
+                    break;
+                }
+            }
+
+            if Self::estimate_tokens(&output) + Self::estimate_tokens(&block) > budget
+                && !selected.is_empty()
+            {
+                break;
+            }
+
+            output.push_str(&block);
+            selected.push(file.clone());
         }
 
-        output
+        if selected.is_empty() {
+            output.push_str(
+                "// No relevant files fit within the token budget. Try a larger --budget.\n",
+            );
+        }
+
+        let total_tokens = Self::estimate_tokens(&output);
+        output = output.replacen("{files}", &selected.len().to_string(), 1);
+        output = output.replacen("{tokens}", &total_tokens.to_string(), 1);
+
+        (output, total_tokens, selected)
     }
 }
 
