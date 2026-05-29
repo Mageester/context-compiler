@@ -3,239 +3,115 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Context Compiler — Simple Guide</title>
-  <meta name="description" content="A simple, easy-to-follow guide for using Context Compiler.">
+  <title>Context Compiler Guide</title>
+  <meta name="description" content="A clean, integrated guide for using Context Compiler in real AI coding workflows.">
+  <meta property="og:title" content="Context Compiler Guide">
+  <meta property="og:description" content="Learn the workflow, commands, and best practices for Context Compiler.">
+  <meta property="og:type" content="website">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/style.css">
-  <style>
-    :root {
-      --bg: #070708;
-      --surface: rgba(255,255,255,.04);
-      --surface-2: rgba(255,255,255,.06);
-      --border: rgba(255,255,255,.10);
-      --text: #f5f3ef;
-      --muted: #c8c2b8;
-      --muted-2: #9c968b;
-      --cyan: #22d3ee;
-      --green: #34d399;
-      --amber: #d4af37;
-      --red: #f87171;
-      --font: 'Geist', system-ui, sans-serif;
-      --mono: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
-    }
-    body { font-family: var(--font); background: radial-gradient(circle at top, #12121a, var(--bg) 45%); color: var(--text); margin: 0; }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
-    .topbar { display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom: 24px; }
-    .brand { display:flex; gap:12px; align-items:center; text-decoration:none; color:var(--text); }
-    .mark { width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,var(--cyan),var(--green)); color:#041016; display:grid; place-items:center; font-weight:800; }
-    .crumbs a { color: var(--muted); text-decoration:none; margin-left: 14px; }
-    .hero { background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); border:1px solid var(--border); border-radius:28px; padding:28px; box-shadow: 0 30px 90px rgba(0,0,0,.35); }
-    h1 { font-size: clamp(2rem, 5vw, 4rem); line-height:1.03; margin: 10px 0 14px; }
-    h1 span { color: var(--cyan); }
-    .lede { font-size: 1.08rem; color: var(--muted); max-width: 70ch; line-height:1.65; }
-    .pillrow { display:flex; flex-wrap:wrap; gap:10px; margin: 20px 0 0; }
-    .pill { border:1px solid var(--border); background: rgba(255,255,255,.03); border-radius:999px; padding: 8px 12px; font-size:.92rem; color: var(--text); }
-    .grid { display:grid; grid-template-columns: repeat(12, 1fr); gap:18px; margin-top: 20px; }
-    .card { grid-column: span 6; background: var(--surface); border:1px solid var(--border); border-radius:24px; padding:22px; }
-    .card.full { grid-column: 1 / -1; }
-    .card h2, .card h3 { margin:0 0 10px; }
-    .card p, .card li { color: var(--muted); line-height:1.65; }
-    .step { display:flex; gap:14px; align-items:flex-start; margin: 14px 0; }
-    .num { width:34px; height:34px; border-radius:12px; background: rgba(34,211,238,.15); color: var(--cyan); display:grid; place-items:center; font-weight:800; flex:0 0 auto; }
-    code { font-family: var(--mono); background: rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.08); border-radius:8px; padding: 2px 6px; color: #f8f7f4; }
-    pre { margin: 0; overflow:auto; background: rgba(0,0,0,.38); border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:18px; }
-    pre code { background: transparent; border:0; padding:0; color:#dce7ff; }
-    .diagram { border:1px solid var(--border); border-radius:24px; padding:12px; background: rgba(0,0,0,.18); overflow:hidden; }
-    .hint { color: var(--muted-2); font-size: .94rem; }
-    .ok { color: var(--green); font-weight: 700; }
-    .warn { color: var(--amber); font-weight: 700; }
-    .bad { color: var(--red); font-weight: 700; }
-    .callout { border-left:4px solid var(--cyan); padding: 14px 16px; background: rgba(34,211,238,.08); border-radius: 18px; }
-    .footer { margin-top: 24px; color: var(--muted-2); font-size: .95rem; }
-    .buttons { display:flex; gap:12px; flex-wrap:wrap; margin-top: 18px; }
-    .btn { display:inline-flex; align-items:center; gap:8px; text-decoration:none; border-radius:999px; padding: 12px 16px; font-weight:700; }
-    .primary { background: linear-gradient(135deg, var(--cyan), var(--green)); color:#071016; }
-    .ghost { border:1px solid var(--border); color: var(--text); background: rgba(255,255,255,.03); }
-    @media (max-width: 860px) { .card { grid-column: 1 / -1; } }
-  </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <a class="brand" href="/">
-        <div class="mark">ctx</div>
-        <div>
-          <div style="font-weight:800">Context Compiler</div>
-          <div style="color:var(--muted-2);font-size:.92rem">Simple guide</div>
-        </div>
-      </a>
-      <div class="crumbs">
-        <a href="/">Home</a>
-        <a href="/guide.html">Guide</a>
-        <a href="/install.sh">Install script</a>
-      </div>
-    </div>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="aurora aurora-a" aria-hidden="true"></div>
+  <div class="aurora aurora-b" aria-hidden="true"></div>
 
-    <section class="hero">
-      <div class="pillrow">
-        <span class="pill">1. Install it</span>
-        <span class="pill">2. Open your repo</span>
-        <span class="pill">3. Run one command</span>
-        <span class="pill">4. Paste the result into your AI</span>
+  <nav class="nav">
+    <a class="brand" href="/" aria-label="Context Compiler home">
+      <span class="brand-mark">ctx</span>
+      <span>Context Compiler</span>
+    </a>
+    <button class="menu" aria-label="Open navigation" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="#workflow">Workflow</a>
+      <a href="#commands">Commands</a>
+      <a href="#faq">FAQ</a>
+      <a class="github" href="https://github.com/Mageester/context-compiler" target="_blank" rel="noreferrer">GitHub ↗</a>
+    </div>
+  </nav>
+
+  <main id="top">
+    <section class="hero reveal" style="min-height:auto;padding-bottom:40px">
+      <div class="eyebrow"><span class="pulse"></span> Practical guide <span class="version-badge">docs</span></div>
+      <h1>Use Context Compiler<br><span>without the guesswork</span>.</h1>
+      <p class="hero-copy">This guide keeps the same visual language as the main site while showing the exact workflow, commands, and habits that make the tool feel clean in day-to-day use.</p>
+      <div class="hero-actions">
+        <a class="btn primary" href="#workflow">Start here</a>
+        <a class="btn ghost" href="/">Back to home</a>
       </div>
-      <h1>How to use <span>Context Compiler</span> in plain English</h1>
-      <p class="lede">This page is the short version. It shows what the tool does, what commands to run, and what you should expect to see. No jargon. No guesswork. Just the steps.</p>
-      <div class="buttons">
-        <a class="btn primary" href="#start">Start here</a>
-        <a class="btn ghost" href="#commands">See commands</a>
+      <div class="terminal-card hero-terminal" aria-label="Quick usage example">
+        <div class="terminal-top"><span></span><span></span><span></span><strong>ctx quickstart</strong></div>
+        <pre><code><span class="type-line"><span class="prompt">$</span> ctx init</span>
+<span class="type-line"><span class="muted">→ building local index…</span></span>
+<span class="type-line"><span class="ok">✓</span> ready</span>
+<span class="type-line"></span>
+<span class="type-line"><span class="prompt">$</span> ctx <span class="string">"fix the missing import in App.tsx"</span></span>
+<span class="type-line"><span class="muted">→ selecting files…</span></span>
+<span class="type-line"><span class="ok">✓</span> context copied</span></code></pre>
       </div>
     </section>
 
-    <div class="grid">
-      <section class="card full" id="start">
-        <h2>What it does</h2>
-        <div class="diagram" aria-label="Simple flow diagram">
-          <svg viewBox="0 0 1040 180" width="100%" height="auto" role="img" aria-label="You write a task, Context Compiler finds files, your AI uses the files">
-            <defs>
-              <marker id="arrow1" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
-                <path d="M0,0 L10,5 L0,10 z" fill="#22d3ee" />
-              </marker>
-            </defs>
-            <rect x="20" y="40" width="240" height="100" rx="20" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.16)"/>
-            <text x="140" y="75" text-anchor="middle" fill="#f5f3ef" font-size="24" font-family="Geist, sans-serif" font-weight="700">You</text>
-            <text x="140" y="105" text-anchor="middle" fill="#c8c2b8" font-size="16" font-family="Geist, sans-serif">Type what you want fixed</text>
+    <section class="split reveal" id="workflow">
+      <div>
+        <p class="label">Workflow</p>
+        <h2>The clean path from task to context.</h2>
+        <p>Run the index once, describe the work in plain English, then let Context Compiler rank and trim the files that matter. The result is a paste-ready context pack that stays aligned with the repo instead of your memory.</p>
+      </div>
+      <div class="steps" style="grid-template-columns:1fr;">
+        <article><span>01</span><h3>Index the repo</h3><p>Run <code>ctx init</code> at the project root to build the local SQLite index.</p></article>
+        <article><span>02</span><h3>Ask in plain language</h3><p>Use <code>ctx "describe the bug or feature"</code> and include file names when you already know them.</p></article>
+        <article><span>03</span><h3>Paste the result</h3><p>Take the selected context and drop it into your coding agent, editor, or review workflow.</p></article>
+      </div>
+    </section>
 
-            <line x1="280" y1="90" x2="455" y2="90" stroke="#22d3ee" stroke-width="4" marker-end="url(#arrow1)"/>
+    <section class="grid-section reveal" id="commands">
+      <div class="feature-card glow"><h3><code>ctx init</code></h3><p>Create or refresh the local index for the current repository.</p></div>
+      <div class="feature-card"><h3><code>ctx "task"</code></h3><p>Shorthand mode for the default token budget and ranking pipeline.</p></div>
+      <div class="feature-card"><h3><code>ctx compile</code></h3><p>Use flags like <code>-b</code> and <code>-m</code> when you need tighter budgets or more files.</p></div>
+      <div class="feature-card"><h3><code>ctx status</code></h3><p>Inspect what is indexed, what was selected, and how the current repo is configured.</p></div>
+    </section>
 
-            <rect x="490" y="30" width="260" height="120" rx="20" fill="rgba(34,211,238,.10)" stroke="rgba(34,211,238,.35)"/>
-            <text x="620" y="65" text-anchor="middle" fill="#22d3ee" font-size="24" font-family="Geist, sans-serif" font-weight="700">Context Compiler</text>
-            <text x="620" y="95" text-anchor="middle" fill="#c8c2b8" font-size="16" font-family="Geist, sans-serif">Finds the right files</text>
-            <text x="620" y="120" text-anchor="middle" fill="#c8c2b8" font-size="16" font-family="Geist, sans-serif">Removes noise</text>
+    <section class="split reveal">
+      <div>
+        <p class="label">Best practice</p>
+        <h2>Keep the guide out of the way of the product.</h2>
+        <p>The page should feel like part of the same system: same background, same glass cards, same gradients, same spacing. That way the docs look intentional instead of like a separate demo site.</p>
+      </div>
+      <div class="terminal-card">
+        <div class="terminal-top"><span></span><span></span><span></span><strong>usage notes</strong></div>
+        <pre><code>• use clear task wording
+• mention filenames when known
+• reindex after structural changes
+• keep .ctx/ out of git
+• use compile --output when working headless</code></pre>
+      </div>
+    </section>
 
-            <line x1="770" y1="90" x2="945" y2="90" stroke="#34d399" stroke-width="4" marker-end="url(#arrow1)"/>
+    <section class="reveal" id="faq">
+      <p class="label">FAQ</p>
+      <h2>Short answers for the common questions.</h2>
+      <div class="checklist">
+        <div><span>✓</span> The guide uses the same CSS and layout language as the homepage.</div>
+        <div><span>✓</span> It stays lightweight and static, so deploys fast with the rest of the site.</div>
+        <div><span>✓</span> The navigation now includes a clean path between home and docs.</div>
+        <div><span>✓</span> The content is framed as a real product guide instead of a standalone landing page.</div>
+      </div>
+    </section>
+  </main>
 
-            <rect x="960" y="40" width="60" height="100" rx="20" fill="rgba(52,211,153,.14)" stroke="rgba(52,211,153,.35)"/>
-            <text x="990" y="90" text-anchor="middle" fill="#34d399" font-size="26" font-family="Geist, sans-serif" font-weight="700">AI</text>
-          </svg>
-        </div>
-        <p class="hint">You describe the job. Context Compiler picks the important files. Then you paste that result into your coding AI.</p>
-      </section>
+  <footer>
+    <div><strong>Context Compiler</strong><span>Natural language → optimized AI context</span></div>
+    <a href="/">Back to home</a>
+  </footer>
 
-      <section class="card">
-        <h3>In one sentence</h3>
-        <p>It saves you from hunting through a whole repo by hand.</p>
-        <h3>What you get</h3>
-        <ul>
-          <li>A short list of important files</li>
-          <li>A token-budgeted context pack</li>
-          <li>Optional AI reranking for better accuracy</li>
-        </ul>
-      </section>
-
-      <section class="card">
-        <h3>Before vs after</h3>
-        <div class="step"><div class="num">1</div><p class="bad">Before: open the repo, guess which files matter, copy too much, forget one important file, and waste time.</p></div>
-        <div class="step"><div class="num">2</div><p class="ok">After: run one command, get a clean file list, and paste it into your AI.</p></div>
-      </section>
-
-      <section class="card full">
-        <h2>How to use it</h2>
-        <div class="step"><div class="num">1</div><div><strong>Open a project folder.</strong><p>Go to the root of the codebase you want to work on.</p></div></div>
-        <div class="step"><div class="num">2</div><div><strong>Build the index once.</strong><p>Run <code>ctx init</code>. This scans the repo and saves a local index in <code>.ctx/</code>.</p></div></div>
-        <div class="step"><div class="num">3</div><div><strong>Ask for the thing you want.</strong><p>Example: <code>ctx "fix the missing import in App.tsx"</code></p></div></div>
-        <div class="step"><div class="num">4</div><div><strong>Read the result.</strong><p>It shows the best files, sorted by relevance.</p></div></div>
-        <div class="step"><div class="num">5</div><div><strong>Paste it into your AI.</strong><p>The output is already trimmed and ready for a coding assistant.</p></div></div>
-      </section>
-
-      <section class="card" id="commands">
-        <h2>Commands you’ll use most</h2>
-        <pre><code>ctx init
-ctx "fix this bug"
-ctx compile --budget 12000 "update the login flow"
-ctx status
-ctx reindex
-ctx configure --api-key YOUR_KEY</code></pre>
-        <p class="hint">If you only remember one command, remember <code>ctx "what you want"</code>.</p>
-      </section>
-
-      <section class="card">
-        <h2>What each command means</h2>
-        <ul>
-          <li><code>ctx init</code> = scan the repo once</li>
-          <li><code>ctx "task"</code> = find the important files</li>
-          <li><code>ctx compile</code> = same thing, but with more control</li>
-          <li><code>ctx status</code> = show index health</li>
-          <li><code>ctx reindex</code> = rebuild everything from scratch</li>
-        </ul>
-      </section>
-
-      <section class="card full">
-        <h2>Simple picture of the workflow</h2>
-        <div class="diagram" aria-label="Workflow diagram">
-          <svg viewBox="0 0 1100 240" width="100%" height="auto" role="img" aria-label="Three-step workflow diagram">
-            <defs>
-              <marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
-                <path d="M0,0 L10,5 L0,10 z" fill="#d4af37" />
-              </marker>
-            </defs>
-            <rect x="40" y="60" width="260" height="120" rx="24" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.14)"/>
-            <text x="170" y="95" text-anchor="middle" fill="#f5f3ef" font-size="24" font-family="Geist, sans-serif" font-weight="700">1. Open repo</text>
-            <text x="170" y="125" text-anchor="middle" fill="#c8c2b8" font-size="16">Go to the project root</text>
-            <text x="170" y="150" text-anchor="middle" fill="#c8c2b8" font-size="16">Run once to build the index</text>
-
-            <line x1="330" y1="120" x2="500" y2="120" stroke="#d4af37" stroke-width="4" marker-end="url(#arrow2)"/>
-
-            <rect x="520" y="60" width="260" height="120" rx="24" fill="rgba(212,175,55,.10)" stroke="rgba(212,175,55,.30)"/>
-            <text x="650" y="95" text-anchor="middle" fill="#d4af37" font-size="24" font-family="Geist, sans-serif" font-weight="700">2. Ask a task</text>
-            <text x="650" y="125" text-anchor="middle" fill="#c8c2b8" font-size="16">Example:</text>
-            <text x="650" y="150" text-anchor="middle" fill="#f5f3ef" font-size="16" font-family="Geist Mono, monospace">ctx "fix auth bug"</text>
-
-            <line x1="810" y1="120" x2="980" y2="120" stroke="#34d399" stroke-width="4" marker-end="url(#arrow2)"/>
-
-            <rect x="1000" y="60" width="60" height="120" rx="24" fill="rgba(52,211,153,.12)" stroke="rgba(52,211,153,.30)"/>
-            <text x="1030" y="118" text-anchor="middle" fill="#34d399" font-size="26" font-family="Geist, sans-serif" font-weight="700">3</text>
-            <text x="1030" y="144" text-anchor="middle" fill="#c8c2b8" font-size="12">Paste</text>
-          </svg>
-        </div>
-      </section>
-
-      <section class="card">
-        <h2>How to know it worked</h2>
-        <p class="ok">Good signs:</p>
-        <ul>
-          <li>You see a short list of files, not the whole repo.</li>
-          <li>The top files look related to your task.</li>
-          <li>The output fits inside your token budget.</li>
-        </ul>
-        <p class="warn">If it looks wrong:</p>
-        <ul>
-          <li>Run <code>ctx reindex</code>.</li>
-          <li>Try a clearer task description.</li>
-          <li>Use <code>ctx configure --api-key ...</code> for better reranking.</li>
-        </ul>
-      </section>
-
-      <section class="card">
-        <h2>When to use API mode</h2>
-        <p>If you want better ranking, give it an API key and model settings.</p>
-        <pre><code>ctx configure --provider openrouter --api-key YOUR_KEY
-ctx configure --reranker-model openai/gpt-4o-mini
-ctx configure --embedding-api-base https://api.openai.com/v1
-ctx configure --reranker-api-base https://openrouter.ai/api/v1</code></pre>
-      </section>
-
-      <section class="card full">
-        <div class="callout">
-          <strong>Very short version:</strong> open the repo, run <code>ctx init</code>, then run <code>ctx "what you want"</code>. It finds the right files, trims the noise, and gives you a clean context pack for your AI.
-        </div>
-      </section>
-    </div>
-
-    <div class="footer">
-      Made for quick reading. If you want, I can also make a <strong>super-short</strong> version, a <strong>screenshots / diagrams</strong> version, or a <strong>beginner docs</strong> version for the site home page.
-    </div>
-  </div>
+  <script>
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible') })
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
 </body>
 </html>
