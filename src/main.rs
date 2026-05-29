@@ -89,7 +89,7 @@ enum Commands {
         limit: usize,
     },
 
-    /// Configure Context Compiler (API keys, models, etc.)
+    /// Configure Context Compiler (API keys, models, providers, etc.)
     Configure {
         /// Path to the project (default: current directory)
         path: Option<PathBuf>,
@@ -110,6 +110,42 @@ enum Commands {
         #[arg(long)]
         set_use_reranker: Option<bool>,
 
+        /// Set the provider (openai, openrouter, deepseek, auto)
+        #[arg(long)]
+        set_provider: Option<String>,
+
+        /// Set OpenRouter API key
+        #[arg(long)]
+        set_openrouter_key: Option<String>,
+
+        /// Set DeepSeek API key
+        #[arg(long)]
+        set_deepseek_key: Option<String>,
+
+        /// Set Codex/GitHub Copilot API key
+        #[arg(long)]
+        set_codex_key: Option<String>,
+
+        /// Enable ensemble reranking (use 2 providers)
+        #[arg(long)]
+        set_ensemble_rerank: Option<bool>,
+
+        /// Enable code-level chunking
+        #[arg(long)]
+        set_code_chunking: Option<bool>,
+
+        /// Enable cross-file reference analysis
+        #[arg(long)]
+        set_cross_file_refs: Option<bool>,
+
+        /// Enable parallel embedding
+        #[arg(long)]
+        set_parallel_embed: Option<bool>,
+
+        /// List available providers
+        #[arg(long)]
+        list_providers: bool,
+
         /// Show current configuration
         #[arg(long, short)]
         show: bool,
@@ -118,6 +154,9 @@ enum Commands {
         #[arg(long, short)]
         global: bool,
     },
+
+    /// List available providers and their capabilities
+    Providers,
 
     /// Generate shell completion scripts
     Completions {
@@ -166,6 +205,15 @@ async fn main() -> Result<()> {
             set_embedding_model,
             set_reranker_model,
             set_use_reranker,
+            set_provider,
+            set_openrouter_key,
+            set_deepseek_key,
+            set_codex_key,
+            set_ensemble_rerank,
+            set_code_chunking,
+            set_cross_file_refs,
+            set_parallel_embed,
+            list_providers,
             show,
             global,
         }) => {
@@ -175,10 +223,22 @@ async fn main() -> Result<()> {
                 set_embedding_model,
                 set_reranker_model,
                 set_use_reranker,
+                set_provider,
+                set_openrouter_key,
+                set_deepseek_key,
+                set_codex_key,
+                set_ensemble_rerank,
+                set_code_chunking,
+                set_cross_file_refs,
+                set_parallel_embed,
+                list_providers,
                 show,
                 global,
             )
             .await?;
+        }
+        Some(Commands::Providers) => {
+            cli::cmd_providers().await?;
         }
         Some(Commands::Completions { shell }) => {
             use clap::CommandFactory;

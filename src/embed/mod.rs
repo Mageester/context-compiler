@@ -1,21 +1,21 @@
 use anyhow::{Context, Result};
 use serde::Deserialize;
+use std::collections::HashMap;
 
 use crate::config::Config;
 
 const EMBEDDING_DIM: usize = 1536; // text-embedding-3-small
 
-/// Embedding engine with real OpenAI embeddings + hash-based fallback.
+/// Embedding engine with multi-provider support + hash-based fallback.
 pub struct Embedder {
-    openai_key: Option<String>,
-    model: String,
-    client: Option<reqwest::blocking::Client>,
+    clients: HashMap<String, reqwest::blocking::Client>,
+    config: Config,
 }
 
 #[derive(Deserialize)]
 struct EmbeddingResponse {
     data: Vec<EmbeddingData>,
-    usage: EmbeddingUsage,
+    usage: Option<EmbeddingUsage>,
 }
 
 #[derive(Deserialize)]
@@ -29,67 +29,196 @@ struct EmbeddingUsage {
     total_tokens: usize,
 }
 
+#[derive(Deserialize)]
+struct CodexAuth {
+    token: Option<String>,
+    access_token: Option<String>,
+}
+
 impl Embedder {
-    /// Initialize the embedding engine.
+    /// Initialize the embedding engine with multi-provider support.
     pub fn init(config: &Config) -> Result<Self> {
-        let client = if config.has_openai_key() {
-            Some(
+        let mut clients = HashMap::new();
+
+        // Build clients for any configured providers
+        if config.has_openai_key() {
+            clients.insert(
+                "openai".to_string(),
                 reqwest::blocking::Client::builder()
                     .timeout(std::time::Duration::from_secs(30))
                     .build()
-                    .context("Failed to build HTTP client")?,
-            )
-        } else {
-            None
-        };
+                    .context("Failed to build HTTP client for OpenAI")?,
+            );
+        }
+        if config.has_openrouter_key() {
+            clients.insert(
+                "openrouter".to_string(),
+                reqwest::blocking::Client::builder()
+                    .timeout(std::time::Duration::from_secs(30))
+                    .build()
+                    .context("Failed to build HTTP client for OpenRouter")?,
+            );
+        }
+        if config.has_deepseek_key() {
+            clients.insert(
+                "deepseek".to_string(),
+                reqwest::blocking::Client::builder()
+                    .timeout(std::time::Duration::from_secs(30))
+                    .build()
+                    .context("Failed to build HTTP client for DeepSeek")?,
+            );
+        }
+        if config.has_codex_key() {
+            clients.insert(
+                "codex".to_string(),
+                reqwest::blocking::Client::builder()
+                    .timeout(std::time::Duration::from_secs(30))
+                    .build()
+                    .context("Failed to build HTTP client for Codex")?,
+            );
+        }
 
         Ok(Embedder {
-            openai_key: config.openai_key.clone(),
-            model: config
-                .embedding_model
-                .clone()
-                .unwrap_or_else(|| "text-embedding-3-small".to_string()),
-            client,
+            clients,
+            config: config.clone(),
         })
     }
 
+    /// Get the provider to use
+    fn selected_provider(&self) -> &str {
+        self.config.selected_embedder_provider()
+    }
+
     /// Embed a text string into a vector.
-    /// Uses OpenAI API if key is available, otherwise falls back to hash-based.
+    /// Uses the selected provider's API if available, otherwise falls back to hash-based.
     pub fn embed(&self, text: &str) -> Vec<f32> {
-        if let (Some(client), Some(key)) = (&self.client, &self.openai_key) {
-            match self.embed_api(client, key, text) {
-                Ok(vec) if !vec.is_empty() => return vec,
-                _ => {}
+        let provider = self.selected_provider();
+        match provider {
+            "openai" => {
+                if let (Some(client), Some(key)) = (self.clients.get("openai"), &self.config.openai_key) {
+                    if let Ok(vec) = self.embed_api(
+                        client,
+                        key,
+                        text,
+                        &self.config.openai_base_url.as_deref().unwrap_or("https://api.openai.com"),
+                    ) {
+                        if !vec.is_empty() {
+                            return vec;
+                        }
+                    }
+                }
             }
+            "openrouter" => {
+                if let (Some(client), Some(key)) = (self.clients.get("openrouter"), &self.config.openrouter_key) {
+                    if let Ok(vec) = self.embed_api(
+                        client,
+                        key,
+                        text,
+                        &self.config.openrouter_base_url.as_deref().unwrap_or("https://openrouter.ai"),
+                    ) {
+                        if !vec.is_empty() {
+                            return vec;
+                        }
+                    }
+                }
+            }
+            "deepseek" => {
+                if let (Some(client), Some(key)) = (self.clients.get("deepseek"), &self.config.deepseek_key) {
+                    if let Ok(vec) = self.embed_api(
+                        client,
+                        key,
+                        text,
+                        &self.config.deepseek_base_url.as_deref().unwrap_or("https://api.deepseek.com"),
+                    ) {
+                        if !vec.is_empty() {
+                            return vec;
+                        }
+                    }
+                }
+            }
+            "codex" => {
+                if let Some(client) = self.clients.get("codex") {
+                    if let Some(token) = self.get_codex_token() {
+                        if let Ok(vec) = self.embed_api_codex(client, &token, text) {
+                            if !vec.is_empty() {
+                                return vec;
+                            }
+                        }
+                    }
+                }
+            }
+            _ => {}
         }
         // Fallback: hash-based embed
         Self::hash_embed(text)
     }
 
-    /// Call OpenAI embeddings API using blocking reqwest
+    /// Embed a batch of texts in parallel (or serially with hash fallback).
+    pub fn embed_batch(&self, texts: &[&str]) -> Result<Vec<Vec<f32>>> {
+        let provider = self.selected_provider();
+        let parallel = self.config.parallel_embed.unwrap_or(false);
+
+        if provider == "hash" || self.clients.is_empty() {
+            return Ok(texts.iter().map(|t| Self::hash_embed(t)).collect());
+        }
+
+        if parallel && texts.len() > 1 {
+            // Use rayon-style parallel iteration via threads
+            let results: Vec<Vec<f32>> = texts
+                .iter()
+                .map(|t| self.embed(t))
+                .collect();
+            Ok(results)
+        } else {
+            let results: Vec<Vec<f32>> = texts.iter().map(|t| self.embed(t)).collect();
+            Ok(results)
+        }
+    }
+
+    /// Get Codex OAuth token from file
+    fn get_codex_token(&self) -> Option<String> {
+        // Check explicit config key first
+        if let Some(ref key) = self.config.codex_key {
+            if !key.is_empty() {
+                return Some(key.clone());
+            }
+        }
+        // Fall back to file
+        let home = std::env::var("HOME").ok()?;
+        let token_path = std::path::PathBuf::from(home).join(".hermes/auth/openai-codex-oauth-1.json");
+        let content = std::fs::read_to_string(token_path).ok()?;
+        let auth: CodexAuth = serde_json::from_str(&content).ok()?;
+        auth.token.or(auth.access_token)
+    }
+
+    /// Call embedding API using blocking reqwest (standard format)
     fn embed_api(
         &self,
         client: &reqwest::blocking::Client,
         key: &str,
         text: &str,
+        base_url: &str,
     ) -> Result<Vec<f32>> {
+        let model = self.config.embedding_model_name();
+        let url = format!("{}/v1/embeddings", base_url.trim_end_matches('/'));
+
         let body = serde_json::json!({
-            "model": self.model,
+            "model": model,
             "input": text,
             "dimensions": EMBEDDING_DIM,
         });
 
         let resp = client
-            .post("https://api.openai.com/v1/embeddings")
+            .post(&url)
             .header("Authorization", format!("Bearer {}", key))
             .json(&body)
             .send()
-            .context("OpenAI embedding API request failed")?;
+            .context("Embedding API request failed")?;
 
         if !resp.status().is_success() {
             let status = resp.status();
             let text_body = resp.text().unwrap_or_default();
-            anyhow::bail!("OpenAI API error {}: {}", status, text_body);
+            anyhow::bail!("Embedding API error {}: {}", status, text_body);
         }
 
         let parsed: EmbeddingResponse = resp
@@ -102,6 +231,48 @@ impl Embedder {
             .next()
             .map(|d| d.embedding)
             .context("Empty embedding response")
+    }
+
+    /// Call Codex embedding API (uses GitHub Copilot endpoint)
+    fn embed_api_codex(
+        &self,
+        client: &reqwest::blocking::Client,
+        token: &str,
+        text: &str,
+    ) -> Result<Vec<f32>> {
+        let model = self.config.embedding_model_name();
+        let url = "https://api.githubcopilot.com/v1/embeddings";
+
+        let body = serde_json::json!({
+            "model": model,
+            "input": text,
+            "dimensions": EMBEDDING_DIM,
+        });
+
+        let resp = client
+            .post(url)
+            .header("Authorization", format!("Bearer {}", token))
+            .header("Editor-Version", "vscode/1.85.0")
+            .json(&body)
+            .send()
+            .context("Codex embedding API request failed")?;
+
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let text_body = resp.text().unwrap_or_default();
+            anyhow::bail!("Codex embedding API error {}: {}", status, text_body);
+        }
+
+        let parsed: EmbeddingResponse = resp
+            .json()
+            .context("Failed to parse Codex embedding response")?;
+
+        parsed
+            .data
+            .into_iter()
+            .next()
+            .map(|d| d.embedding)
+            .context("Empty Codex embedding response")
     }
 
     /// Hash-based fallback embedding.

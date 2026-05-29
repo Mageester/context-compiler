@@ -262,6 +262,8 @@ fn main() {
             dependency_score: 0.0,
             history_score: 0.0,
             lexical_score: 0.0,
+            identifier_match_score: 0.0,
+            tags: Vec::new(),
         }];
         let (result, tokens, selected) =
             Trimmer::format_context(&files, "test task", 1000, 0, |_path| {
@@ -287,6 +289,8 @@ fn main() {
             dependency_score: 0.0,
             history_score: 0.0,
             lexical_score: 0.0,
+            identifier_match_score: 0.0,
+            tags: Vec::new(),
         }];
         let (result, _, selected) = Trimmer::format_context(&files, "test", 1000, 0, |_| None);
         assert!(result.contains("No relevant files fit"));

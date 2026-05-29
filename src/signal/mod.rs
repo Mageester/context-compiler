@@ -23,6 +23,8 @@ pub struct ScoredFile {
     pub dependency_score: f32,
     pub history_score: f32,
     pub lexical_score: f32,
+    pub identifier_match_score: f32,
+    pub tags: Vec<String>,
 }
 
 impl RelevanceEngine {
@@ -59,6 +61,13 @@ impl RelevanceEngine {
             .map(|w| w.to_lowercase())
             .collect();
 
+        // --- Stage 1c: Identifier match terms ---
+        // Tokenize the task text to get search terms for identifier matching
+        let task_terms: Vec<String> = Embedder::tokenize(task_text)
+            .into_iter()
+            .filter(|w| w.len() > 2)
+            .collect();
+
         // --- Stage 2: History similarity ---
         let similar_history: Vec<&crate::store::HistoryEntry> = history
             .iter()
@@ -87,7 +96,7 @@ impl RelevanceEngine {
             // --- Stage 1b: Filename boost ---
             // Exact filename mention in the task is a VERY strong signal
             let path_lower = file.path.to_lowercase();
-            let filename_boost = if filename_boost_patterns
+            let (filename_boost, is_exact_filename) = if filename_boost_patterns
                 .iter()
                 .any(|pat| {
                     // Exact match: pat is the exact filename
@@ -102,10 +111,13 @@ impl RelevanceEngine {
                 let has_exact = filename_boost_patterns.iter().any(|pat| {
                     path_lower == *pat || path_lower.ends_with(&format!("/{}", pat))
                 });
-                if has_exact { 0.5 } else { 0.3 }
+                if has_exact { (0.5, true) } else { (0.3, false) }
             } else {
-                0.0
+                (0.0, false)
             };
+
+            // --- Stage 1c: Identifier match score ---
+            let identifier_score = Self::compute_identifier_match(&file.identifiers, &task_terms);
 
             // --- Stage 2: Semantic similarity ---
             let semantic = match &file.embedding {
@@ -124,20 +136,45 @@ impl RelevanceEngine {
             let history_score = Self::compute_history_score(&file.path, &history_counts);
 
             // --- Composite score ---
-            // Three primary signals are combined additively, then boosted by dependency/history.
+            // Four primary signals are combined additively, then boosted by dependency/history.
             // Filename boost is a hard override: if the task explicitly names a file, it must appear.
-            let lexical_weight = 0.40;
-            let semantic_weight = 0.30;
-            let filename_weight = 0.30;
+            let lexical_weight = 0.35;
+            let semantic_weight = 0.25;
+            let filename_weight = 0.25;
+            let identifier_weight = 0.15;
 
             let base_score = lexical * lexical_weight
                 + semantic * semantic_weight
-                + filename_boost * filename_weight;
+                + filename_boost * filename_weight
+                + identifier_score * identifier_weight;
 
             // Boost by dependency and history scores
             let dep_boost = 1.0 + (dependency * 0.5);
             let hist_boost = 1.0 + (history_score * 0.3);
             let score = base_score * dep_boost * hist_boost;
+
+            // Build tags
+            let mut tags = Vec::new();
+            if lexical > 0.0 {
+                tags.push(format!("BM25:{:.0}%", lexical * 100.0));
+            }
+            if semantic > 0.0 {
+                tags.push(format!("semantic:{:.0}%", semantic * 100.0));
+            }
+            if identifier_score > 0.0 {
+                tags.push(format!("identifier:{:.0}%", identifier_score * 100.0));
+            }
+            if is_exact_filename {
+                tags.push("filename:exact".to_string());
+            } else if filename_boost > 0.0 {
+                tags.push("filename:partial".to_string());
+            }
+            if dependency > 0.0 {
+                tags.push(format!("dependency:{:.0}%", dependency * 100.0));
+            }
+            if history_score > 0.0 {
+                tags.push(format!("history:{:.0}%", history_score * 100.0));
+            }
 
             // Keep files with any score signal
             if score > 0.0 || filename_boost > 0.0 {
@@ -151,6 +188,8 @@ impl RelevanceEngine {
                     dependency_score: dependency,
                     history_score,
                     lexical_score: lexical,
+                    identifier_match_score: identifier_score,
+                    tags,
                 });
             }
         }
@@ -163,6 +202,26 @@ impl RelevanceEngine {
         });
 
         Ok(scored)
+    }
+
+    /// Compute identifier match score: how many of the file's identifiers match task terms
+    fn compute_identifier_match(identifiers: &[String], task_terms: &[String]) -> f32 {
+        if task_terms.is_empty() || identifiers.is_empty() {
+            return 0.0;
+        }
+
+        let mut matched = 0;
+        for term in task_terms {
+            let term_lower = term.to_lowercase();
+            if identifiers.iter().any(|id| {
+                let id_lower = id.to_lowercase();
+                id_lower == term_lower || id_lower.contains(&term_lower)
+            }) {
+                matched += 1;
+            }
+        }
+
+        matched as f32 / task_terms.len() as f32
     }
 
     /// Compute dependency score: files imported by high-relevance files get a boost.
@@ -265,6 +324,8 @@ mod tests {
             dependency_score: 0.0,
             history_score: 0.0,
             lexical_score: 0.0,
+            identifier_match_score: 0.0,
+            tags: Vec::new(),
         }
     }
 
@@ -330,5 +391,25 @@ mod tests {
         ];
         let result = RelevanceEngine::select_top(files, 10000, 0);
         assert_eq!(result.len(), 2);
+    }
+
+    #[test]
+    fn test_compute_identifier_match() {
+        let identifiers = vec![
+            "auth".to_string(),
+            "middleware".to_string(),
+            "authenticate".to_string(),
+            "AuthMiddleware".to_string(),
+        ];
+        let terms = vec!["auth".to_string(), "login".to_string()];
+        let score = RelevanceEngine::compute_identifier_match(&identifiers, &terms);
+        // "auth" matches, "login" doesn't -> 0.5
+        assert!((score - 0.5).abs() < 0.01, "Expected 0.5, got {}", score);
+    }
+
+    #[test]
+    fn test_compute_identifier_match_empty() {
+        assert_eq!(RelevanceEngine::compute_identifier_match(&[], &["test".to_string()]), 0.0);
+        assert_eq!(RelevanceEngine::compute_identifier_match(&["foo".to_string()], &[]), 0.0);
     }
 }

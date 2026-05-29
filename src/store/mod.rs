@@ -251,16 +251,27 @@ impl Store {
             return Ok(HashMap::new());
         }
 
-        // BM25: lower is better. Normalize so best score = 1.0, worst = 0.0.
-        // BM25 is typically 0 to ~10, lower = better.
-        // We use: score_normalized = 1.0 - (score / max_possible)
-        // Or better: 1.0 / (1.0 + score) gives a 0-1 range where 1 = perfect match.
+        // BM25: more negative = better match (FTS5 returns negative values for
+        // multi-term matches). Normalize so best score = 1.0, worst = 0.0 using
+        // min-max scaling on the negated values.
+        let raw_f64: Vec<f64> = results.iter().map(|(_, s)| *s).collect();
+        let min_bm25 = raw_f64.iter().cloned().fold(f64::NAN, f64::min);
+        let max_bm25 = raw_f64.iter().cloned().fold(f64::NAN, f64::max);
+        let range = (max_bm25 - min_bm25).abs();
+
         let scores: HashMap<String, f32> = results
             .into_iter()
             .map(|(path, raw_score)| {
-                // Convert BM25 to 0-1 where higher = better
-                // BM25 minimum is 0 (perfect match), typically goes up to 5-10
-                let normalized = (1.0 / (1.0 + raw_score)).min(1.0);
+                // Negate: best (most negative) becomes largest positive
+                let negated = -raw_score;
+                let min_negated = -max_bm25;
+                // Min-max scale: 1.0 for best, 0.0 for worst
+                // Single-result case: all get 1.0
+                let normalized = if range < 1e-10 {
+                    1.0
+                } else {
+                    ((negated - min_negated) / range).max(0.0).min(1.0)
+                };
                 (path, normalized as f32)
             })
             .collect();
@@ -268,7 +279,7 @@ impl Store {
         Ok(scores)
     }
 
-    /// Convert a user query to an FTS5-safe query.
+    /// Convert a user query to an FTS5-safe query with prefix matching.
     fn to_fts_query(query: &str) -> String {
         // Split by whitespace, filter short/noise words, join with AND
         let terms: Vec<&str> = query
@@ -292,14 +303,24 @@ impl Store {
 
         // Use OR for broader matching. FTS5 BM25 will rank files that match
         // more terms higher, so this works better than AND for code search.
-        // Wrap compound terms in quotes for exact matching.
+        // Append * to each term for prefix matching (e.g., \"auth\" matches
+        // \"authentication\").  FTS5's ascii tokenizer splits on non-alphanumeric
+        // boundaries, so compound terms like \"repos.ts\" become the tokens
+        // \"repos\" and \"ts\" — we split on those boundaries ourselves and
+        // emit \"repos* ts*\" so FTS5 can match both sub-tokens.
         let parts: Vec<String> = terms
             .iter()
-            .map(|t| {
-                if t.contains('.') || t.contains('/') || t.contains('_') || t.contains('-') {
-                    format!("\"{}\"", t)
+            .flat_map(|t| {
+                // Split on common separators and emit each part with prefix
+                let sub_terms: Vec<String> = t
+                    .split(|c: char| c == '.' || c == '/' || c == '\\' || c == '_' || c == '-')
+                    .filter(|s| s.len() > 1)
+                    .map(|s| format!("{}*", s))
+                    .collect();
+                if sub_terms.is_empty() {
+                    vec![format!("{}*", t)]
                 } else {
-                    t.to_string()
+                    sub_terms
                 }
             })
             .collect();

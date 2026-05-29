@@ -39,10 +39,17 @@ impl Compiler {
         log::info!("[Stage 2/4] Scored {} files", scored.len());
 
         // 3. AI reranker (stage 4 - premium accuracy)
-        let use_reranker = config.use_reranker.unwrap_or(true) && config.has_openai_key();
+        let has_key = config.has_openai_key()
+            || config.has_openrouter_key()
+            || config.has_deepseek_key()
+            || config.has_codex_key();
+        let use_reranker = config.use_reranker.unwrap_or(true) && has_key;
 
         let ranked = if use_reranker && scored.len() > 1 {
-            log::info!("[Stage 3/4] Running AI reranker on top candidates...");
+            log::info!(
+                "[Stage 3/4] Running AI reranker ({}) on top candidates...",
+                config.selected_reranker_provider()
+            );
             let reranker = Reranker::new(config);
             match reranker.rerank(task, &scored, path) {
                 Ok(reranked) => {
@@ -79,9 +86,10 @@ impl Compiler {
         }
 
         log::info!(
-            "[Done] Selected {} files ({} trimmed tokens) for: {}",
+            "[Done] Selected {} files ({} trimmed tokens) using {} for: {}",
             selected.len(),
             total_trimmed,
+            config.provider_context_summary(),
             task
         );
 

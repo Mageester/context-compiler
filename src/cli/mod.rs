@@ -55,11 +55,31 @@ fn load_config(project_path: &Path) -> Config {
     // Treat empty strings as unset
     let local_key = local.openai_key.filter(|k| !k.is_empty());
     let global_key = global.openai_key.filter(|k| !k.is_empty());
+    let local_ork = local.openrouter_key.filter(|k| !k.is_empty());
+    let global_ork = global.openrouter_key.filter(|k| !k.is_empty());
+    let local_dsk = local.deepseek_key.filter(|k| !k.is_empty());
+    let global_dsk = global.deepseek_key.filter(|k| !k.is_empty());
+    let local_cdx = local.codex_key.filter(|k| !k.is_empty());
+    let global_cdx = global.codex_key.filter(|k| !k.is_empty());
     Config {
         openai_key: local_key.or(global_key),
+        openrouter_key: local_ork.or(global_ork),
+        deepseek_key: local_dsk.or(global_dsk),
+        codex_key: local_cdx.or(global_cdx),
+        provider: local.provider.or(global.provider),
+        openai_base_url: local.openai_base_url.or(global.openai_base_url),
+        openrouter_base_url: local.openrouter_base_url.or(global.openrouter_base_url),
+        deepseek_base_url: local.deepseek_base_url.or(global.deepseek_base_url),
         embedding_model: local.embedding_model.or(global.embedding_model),
         reranker_model: local.reranker_model.or(global.reranker_model),
         use_reranker: local.use_reranker.or(global.use_reranker),
+        ensemble_rerank: local.ensemble_rerank.or(global.ensemble_rerank),
+        ensemble_count: local.ensemble_count.or(global.ensemble_count),
+        code_chunking: local.code_chunking.or(global.code_chunking),
+        cross_file_refs: local.cross_file_refs.or(global.cross_file_refs),
+        term_expansion: local.term_expansion.or(global.term_expansion),
+        parallel_embed: local.parallel_embed.or(global.parallel_embed),
+        cache_ttl: local.cache_ttl.or(global.cache_ttl),
     }
 }
 
@@ -100,13 +120,9 @@ pub async fn cmd_init(path: PathBuf, force: bool) -> Result<()> {
     println!();
     print_success(&format!("Indexed {} files", count));
 
-    // Show API key status
-    if config.has_openai_key() {
-        print_info("✓ OpenAI API key configured — embeddings & AI reranker active");
-    } else {
-        print_warn("No OpenAI API key found. Run `ctx configure --set openai-key=sk-...`");
-        print_info("  Without a key, the tool uses hash-based matching (less accurate)");
-    }
+    // Show provider status
+    let summary = config.provider_context_summary();
+    print_info(&format!("{}", summary));
 
     Ok(())
 }
@@ -127,11 +143,9 @@ pub async fn cmd_compile(
     print_header("Context Compiler — Compile");
     println!("  Task:    {}", task.cyan());
     println!("  Budget:  {} tokens", budget.to_string().yellow());
-    if config.has_openai_key() {
-        println!("  Reranker: {} ({})", "ON".green().bold(), config.reranker_model.as_deref().unwrap_or("gpt-4o-mini"));
-    } else {
-        println!("  Reranker: {} (set OPENAI_API_KEY for AI-powered accuracy)", "OFF".yellow());
-    }
+
+    let provider_summary = config.provider_context_summary();
+    println!("  {}", provider_summary.dimmed());
     println!();
 
     // Ensure index exists
@@ -164,11 +178,10 @@ pub async fn cmd_compile(
     for (i, file) in selected.iter().enumerate() {
         let score_pct = (file.score * 100.0) as usize;
         let bar = "█".repeat(score_pct / 10) + &"░".repeat(10 - (score_pct / 10).min(10));
-        let lex_tag = if file.lexical_score > 0.0 {
-            format!(" [BM25:{:.0}%]", file.lexical_score * 100.0)
-        } else {
-            String::new()
-        };
+        let mut tags_str = String::new();
+        if !file.tags.is_empty() {
+            tags_str = format!(" [{}]", file.tags[..file.tags.len().min(3)].join(", "));
+        }
         println!(
             "  {}. {} ({})  {} {:2}%{}",
             (i + 1).to_string().cyan().bold(),
@@ -176,7 +189,7 @@ pub async fn cmd_compile(
             file.token_count.to_string().yellow(),
             bar.cyan().dimmed(),
             score_pct,
-            lex_tag.dimmed(),
+            tags_str.dimmed(),
         );
     }
     println!();
@@ -238,10 +251,23 @@ pub async fn cmd_status() -> Result<()> {
         "  History:   {} past sessions",
         history.len().to_string().dimmed()
     );
-    if config.has_openai_key() {
-        println!("  AI:        {} ({})", "ACTIVE".green().bold(), config.embedding_model.as_deref().unwrap_or("text-embedding-3-small"));
+
+    // Show provider info
+    let provider = config.selected_embedder_provider();
+    if provider == "hash" {
+        println!("  Provider:  {} (hash-based embeddings)", "none".yellow());
     } else {
-        println!("  AI:        {} (set OPENAI_API_KEY for real embeddings)", "hash-based".yellow());
+        let model = config.embedding_model_name();
+        println!("  Embed:     {} ({})", provider.green().bold(), model.dimmed());
+    }
+
+    let rerank_provider = config.selected_reranker_provider();
+    if rerank_provider != "none" {
+        let rerank_model = config.reranker_model_name();
+        println!("  Rerank:    {} ({})", rerank_provider.green().bold(), rerank_model.dimmed());
+        if config.ensemble_rerank.unwrap_or(false) {
+            println!("  Ensemble:  active");
+        }
     }
     println!();
 
@@ -377,6 +403,15 @@ pub async fn cmd_configure(
     set_embedding_model: Option<String>,
     set_reranker_model: Option<String>,
     set_use_reranker: Option<bool>,
+    set_provider: Option<String>,
+    set_openrouter_key: Option<String>,
+    set_deepseek_key: Option<String>,
+    set_codex_key: Option<String>,
+    set_ensemble_rerank: Option<bool>,
+    set_code_chunking: Option<bool>,
+    set_cross_file_refs: Option<bool>,
+    set_parallel_embed: Option<bool>,
+    list_providers: bool,
     show: bool,
     global: bool,
 ) -> Result<()> {
@@ -389,6 +424,27 @@ pub async fn cmd_configure(
         let p = project_path.unwrap_or_else(|| std::env::current_dir().unwrap());
         p
     };
+
+    // Handle --list-providers
+    if list_providers {
+        print_header("Context Compiler — Available Providers");
+        println!("  Embedding providers:");
+        println!("    openai    — OpenAI (text-embedding-3-small)");
+        println!("    openrouter — OpenRouter (openai/text-embedding-3-small)");
+        println!("    deepseek  — DeepSeek (deepseek-embedding)");
+        println!("    codex     — GitHub Copilot Codex (text-embedding-3-small)");
+        println!("    hash      — Local hash-based fallback (no API key needed)");
+        println!();
+        println!("  Reranker providers:");
+        println!("    openai    — OpenAI (gpt-4o-mini)");
+        println!("    openrouter — OpenRouter (openai/gpt-4o-mini)");
+        println!("    deepseek  — DeepSeek (deepseek-chat)");
+        println!("    codex     — GitHub Copilot Codex (gpt-4o-mini)");
+        println!();
+        println!("  Set provider:  {}", "ctx configure --set-provider=<name>".yellow());
+        println!("  Ensemble mode: {}", "ctx configure --set-ensemble-rerank=true".yellow());
+        return Ok(());
+    }
 
     let mut config = Config::load(&config_path);
 
@@ -405,6 +461,30 @@ pub async fn cmd_configure(
     if let Some(use_it) = set_use_reranker {
         config.use_reranker = Some(use_it);
     }
+    if let Some(ref p) = set_provider {
+        config.provider = Some(p.clone());
+    }
+    if let Some(ref key) = set_openrouter_key {
+        config.openrouter_key = Some(key.clone());
+    }
+    if let Some(ref key) = set_deepseek_key {
+        config.deepseek_key = Some(key.clone());
+    }
+    if let Some(ref key) = set_codex_key {
+        config.codex_key = Some(key.clone());
+    }
+    if let Some(en) = set_ensemble_rerank {
+        config.ensemble_rerank = Some(en);
+    }
+    if let Some(cc) = set_code_chunking {
+        config.code_chunking = Some(cc);
+    }
+    if let Some(cfr) = set_cross_file_refs {
+        config.cross_file_refs = Some(cfr);
+    }
+    if let Some(pe) = set_parallel_embed {
+        config.parallel_embed = Some(pe);
+    }
 
     // Save
     config.save(&config_path)?;
@@ -415,14 +495,27 @@ pub async fn cmd_configure(
         format!("{}", config_path.join(".ctx/config.toml").display())
     };
 
-    if show || (set_openai_key.is_none()
-        && set_embedding_model.is_none()
-        && set_reranker_model.is_none()
-        && set_use_reranker.is_none())
-    {
+    let any_changes = set_openai_key.is_some()
+        || set_embedding_model.is_some()
+        || set_reranker_model.is_some()
+        || set_use_reranker.is_some()
+        || set_provider.is_some()
+        || set_openrouter_key.is_some()
+        || set_deepseek_key.is_some()
+        || set_codex_key.is_some()
+        || set_ensemble_rerank.is_some()
+        || set_code_chunking.is_some()
+        || set_cross_file_refs.is_some()
+        || set_parallel_embed.is_some();
+
+    if show || !any_changes {
         print_header("Context Compiler — Configuration");
         println!("  Config file: {}", location_str.cyan());
         println!();
+
+        let summary = config.provider_context_summary();
+        println!("  Provider:    {}", summary);
+
         if let Some(key) = &config.openai_key {
             let masked = if key.len() > 12 {
                 format!("{}...{}", &key[..8], &key[key.len() - 4..])
@@ -430,21 +523,62 @@ pub async fn cmd_configure(
                 "****".to_string()
             };
             println!("  OpenAI Key:  {}", masked.green());
-            println!("  Embeddings:  {} ({})", "ACTIVE".green().bold(), config.embedding_model.as_deref().unwrap_or("text-embedding-3-small"));
-            println!("  Reranker:    {} ({})", "ACTIVE".green().bold(), config.reranker_model.as_deref().unwrap_or("gpt-4o-mini"));
         } else {
             println!("  OpenAI Key:  {}", "not set".yellow());
-            println!("  Embeddings:  {} (hash-based)", "fallback".yellow());
-            println!("  Reranker:    {} (requires API key)", "disabled".yellow());
+        }
+
+        if let Some(key) = &config.openrouter_key {
+            let masked = format!("{}...{}", &key[..8], &key[key.len() - 4..]);
+            println!("  OpenRouter:  {}", masked.green());
+        } else {
+            println!("  OpenRouter:  {}", "not set".yellow());
+        }
+
+        if let Some(key) = &config.deepseek_key {
+            let masked = format!("{}...{}", &key[..8], &key[key.len() - 4..]);
+            println!("  DeepSeek:    {}", masked.green());
+        } else {
+            println!("  DeepSeek:    {}", "not set".yellow());
+        }
+
+        println!(
+            "  Embeddings:  {}",
+            config.embedding_model.as_deref().unwrap_or("text-embedding-3-small")
+        );
+        println!(
+            "  Reranker:    {}",
+            config.reranker_model.as_deref().unwrap_or("gpt-4o-mini")
+        );
+        println!(
+            "  Use Reranker: {}",
+            if config.use_reranker.unwrap_or(true) { "yes".green() } else { "no".yellow() }
+        );
+        println!(
+            "  Ensemble:    {}",
+            if config.ensemble_rerank.unwrap_or(false) { "yes".green() } else { "no".yellow() }
+        );
+
+        if !any_changes {
             println!();
-            println!("  Set your key:  {} <your-key>", "ctx configure --set openai-key=sk-...".yellow());
-            println!("  Global config: {} (any project)", "ctx configure --global --set openai-key=...".yellow());
+            println!("  Set your key:  {}", "ctx configure --set-openai-key=sk-...".yellow());
+            println!("  Set provider:  {}", "ctx configure --set-provider=openrouter".yellow());
+            println!("  List providers: {}", "ctx configure --list-providers".yellow());
+            println!("  Global config:  {}", "ctx configure --global --set-openai-key=...".yellow());
         }
     } else {
         print_success(&format!("Configuration saved to {}", location_str));
     }
 
     Ok(())
+}
+
+/// Handle `ctx providers` — alias for `ctx configure --list-providers`
+pub async fn cmd_providers() -> Result<()> {
+    cmd_configure(
+        None, None, None, None, None, None, None, None, None, None, None, None, None,
+        true, false, false,
+    )
+    .await
 }
 
 /// Handle `ctx completions <shell>`

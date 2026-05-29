@@ -48,7 +48,7 @@ table.comp tfoot td{padding:16px 20px;color:var(--faint);font-size:12px;border-t
 @media(max-width:860px){.verdict{grid-template-columns:1fr}}
 
 /* ── Pipeline architecture section ── */
-.pipeline{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:12px;align-items:center;margin-top:32px}@media(max-width:860px){.pipeline{grid-template-columns:1fr;gap:8px}.pipeline-arrow{transform:rotate(90deg);margin:0 auto}}
+.pipeline{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr auto 1fr;gap:12px;align-items:center;margin-top:32px}@media(max-width:860px){.pipeline{grid-template-columns:1fr;gap:8px}.pipeline-arrow{transform:rotate(90deg);margin:0 auto}}
 .pipeline-stage{padding:22px;border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(180deg,#ffffff0e,#ffffff06);transition:.3s}.pipeline-stage:hover{border-color:#39d9ff55;transform:translateY(-4px)}
 .pipeline-stage h3{font-size:16px;margin:0 0 10px}.pipeline-stage p{font-size:13px;color:var(--muted);line-height:1.6;margin:0 0 14px}
 .stage-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--blue));color:#03040a;font-size:13px;font-weight:700;margin-bottom:12px}
