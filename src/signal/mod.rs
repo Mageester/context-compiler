@@ -148,11 +148,15 @@ impl RelevanceEngine {
     }
 
     /// Select top files up to the given token budget.
+    ///
+    /// Kept as a small scoring utility for tests and downstream callers. The main compiler uses
+    /// `Trimmer::format_context` for final budget enforcement because real trimmed output can be
+    /// larger than the old fixed 40% estimate.
+    #[allow(dead_code)]
     pub fn select_top(scored: Vec<ScoredFile>, budget: usize, max_files: usize) -> Vec<ScoredFile> {
         let mut selected = Vec::new();
         let mut total_tokens = 0;
 
-        // Always include the top scorer if it exists
         if scored.is_empty() {
             return selected;
         }
@@ -162,7 +166,7 @@ impl RelevanceEngine {
                 break;
             }
 
-            let trimmed_tokens = (file.token_count as f64 * 0.4) as usize; // Assume trim saves ~60%
+            let trimmed_tokens = (file.token_count as f64 * 0.4) as usize;
             if total_tokens + trimmed_tokens > budget && !selected.is_empty() {
                 break;
             }

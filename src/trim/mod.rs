@@ -262,13 +262,16 @@ fn main() {
             dependency_score: 0.0,
             history_score: 0.0,
         }];
-        let result = Trimmer::format_context(&files, "test task", |_path| {
-            Some("fn hello() {\n    println!(\"hi\");\n}".into())
-        });
+        let (result, tokens, selected) =
+            Trimmer::format_context(&files, "test task", 1000, 0, |_path| {
+                Some("fn hello() {\n    println!(\"hi\");\n}".into())
+            });
         assert!(result.contains("test task"));
         assert!(result.contains("test.rs"));
         assert!(result.contains("0.95"));
         assert!(result.contains("trimmed to"));
+        assert!(tokens <= 1000);
+        assert_eq!(selected.len(), 1);
     }
 
     #[test]
@@ -283,8 +286,9 @@ fn main() {
             dependency_score: 0.0,
             history_score: 0.0,
         }];
-        let result = Trimmer::format_context(&files, "test", |_| None);
-        assert!(result.contains("File not found"));
+        let (result, _, selected) = Trimmer::format_context(&files, "test", 1000, 0, |_| None);
+        assert!(result.contains("No relevant files fit"));
+        assert!(selected.is_empty());
     }
 
     #[test]
