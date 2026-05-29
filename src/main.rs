@@ -4,8 +4,10 @@ use std::path::PathBuf;
 
 mod cli;
 mod compile;
+mod config;
 mod embed;
 mod index;
+mod rerank;
 mod signal;
 mod store;
 mod tree;
@@ -87,6 +89,36 @@ enum Commands {
         limit: usize,
     },
 
+    /// Configure Context Compiler (API keys, models, etc.)
+    Configure {
+        /// Path to the project (default: current directory)
+        path: Option<PathBuf>,
+
+        /// Set OpenAI API key
+        #[arg(long)]
+        set_openai_key: Option<String>,
+
+        /// Set embedding model name
+        #[arg(long)]
+        set_embedding_model: Option<String>,
+
+        /// Set reranker model name
+        #[arg(long)]
+        set_reranker_model: Option<String>,
+
+        /// Enable or disable AI reranker
+        #[arg(long)]
+        set_use_reranker: Option<bool>,
+
+        /// Show current configuration
+        #[arg(long, short)]
+        show: bool,
+
+        /// Save to global config (~/.ctx/config.toml) instead of project local
+        #[arg(long, short)]
+        global: bool,
+    },
+
     /// Generate shell completion scripts
     Completions {
         /// Shell to generate completions for (bash, zsh, fish, powershell, elvish)
@@ -127,6 +159,26 @@ async fn main() -> Result<()> {
         }
         Some(Commands::History { limit }) => {
             cli::cmd_history(limit).await?;
+        }
+        Some(Commands::Configure {
+            path,
+            set_openai_key,
+            set_embedding_model,
+            set_reranker_model,
+            set_use_reranker,
+            show,
+            global,
+        }) => {
+            cli::cmd_configure(
+                path,
+                set_openai_key,
+                set_embedding_model,
+                set_reranker_model,
+                set_use_reranker,
+                show,
+                global,
+            )
+            .await?;
         }
         Some(Commands::Completions { shell }) => {
             use clap::CommandFactory;

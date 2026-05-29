@@ -83,13 +83,34 @@ impl IndexBuilder {
 
             let summary = summary.chars().take(500).collect::<String>();
 
-            // Embed both path and summary. Paths often carry the strongest signal
-            // in real codebases (`auth/middleware.ts`, `compile/mod.rs`, etc.).
+            // Extract compound identifiers from the source code
+            let mut identifiers = Embedder::extract_identifiers(&source);
+            // Also add path segments as identifiers
             let relative_path = file_path
                 .strip_prefix(path)
                 .unwrap_or(file_path)
                 .to_string_lossy()
                 .to_string();
+            for segment in relative_path.split(&['/', '\\', '.'][..]) {
+                if segment.len() > 1 && !identifiers.contains(&segment.to_string()) {
+                    identifiers.push(segment.to_string());
+                }
+                // Also extract CamelCase from path segments
+                for id in Embedder::extract_identifiers(segment) {
+                    if !identifiers.contains(&id) {
+                        identifiers.push(id);
+                    }
+                }
+            }
+            // Deduplicate
+            identifiers.sort();
+            identifiers.dedup();
+            // Keep most relevant identifiers (limit to 100 per file to avoid bloat)
+            if identifiers.len() > 100 {
+                identifiers.truncate(100);
+            }
+
+            // Embed both path and summary
             let embedding_text = format!("{}\n{}", relative_path, summary);
             let embedding = embedder.embed(&embedding_text);
 
@@ -100,6 +121,7 @@ impl IndexBuilder {
                 language: lang.to_string(),
                 tree_hash: parsed.tree_hash,
                 embedding: Some(embedding),
+                identifiers,
             };
 
             if let Err(e) = store.upsert_file(&entry) {

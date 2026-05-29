@@ -1,6 +1,6 @@
 [package]
 name = "ctx"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
 description = "Natural language → optimized AI context window. Tell it what to build, get exactly the files an LLM needs."
 authors = ["Aidan Magee <magee@axiom.team>"]
@@ -16,6 +16,9 @@ clap_complete = "4"
 
 # Async runtime
 tokio = { version = "1", features = ["full"] }
+
+# HTTP client for OpenAI API calls
+reqwest = { version = "0.12", features = ["json", "rustls-tls", "blocking"], default-features = false }
 
 # SQLite for persistent index
 rusqlite = { version = "0.31", features = ["bundled"] }
@@ -66,6 +69,9 @@ uuid = { version = "1", features = ["v4"] }
 
 # Time
 chrono = "0.4"
+
+# TOML config parsing
+toml = "0.8"
 
 # Colored output
 colored = "2"

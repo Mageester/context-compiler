@@ -1,7 +1,9 @@
 pub mod cli;
 pub mod compile;
+pub mod config;
 pub mod embed;
 pub mod index;
+pub mod rerank;
 pub mod signal;
 pub mod store;
 pub mod tree;
