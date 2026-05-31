@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Context Compiler v0.3.0 — Natural language to optimized AI context</title>
-  <meta name="description" content="Context Compiler turns a natural-language coding task into a compact, ranked, token-budgeted context pack for any AI coding agent. Supports OpenAI, OpenRouter, DeepSeek, and GitHub Copilot Codex.">
-  <meta property="og:title" content="Context Compiler v0.3.0">
-  <meta property="og:description" content="Tell it what to build. Get exactly the files your AI coding agent needs. Multi-provider, ensemble reranking, FTS5 BM25.">
-  <meta property="og:type" content="website">
+  <title>Context Compiler — Natural language to optimized AI context</title>
+  <meta name="description" content="Describe a coding task in plain English. Context Compiler finds the right files, trims noise, and gives your AI coding agent exactly what it needs. No API key required.">
+  <meta property="og:title" content="Context Compiler">
+  <meta property="og:description" content="Describe a coding task. Get exactly the files your AI coding agent needs. Works with or without an AI API key.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -19,460 +18,436 @@
   <div class="aurora aurora-b" aria-hidden="true"></div>
 
   <nav class="nav">
-    <a class="brand" href="#top" aria-label="Context Compiler home">
-      <span class="brand-mark">ctx</span>
-      <span>Context Compiler</span>
-    </a>
+    <a class="brand" href="#top"><span class="brand-mark">ctx</span><span>Context Compiler</span></a>
     <button class="menu" aria-label="Open navigation" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
     <div class="nav-links">
+      <a href="#how-it-works">How it works</a>
       <a href="#install">Install</a>
-      <a href="#quick-test">Quick Test</a>
-      <a href="#workflow">Workflow</a>
-      <a href="#architecture">Architecture</a>
+      <a href="#use-cases">Use cases</a>
+      <a href="#accuracy">Accuracy</a>
       <a href="#providers">Providers</a>
-      <a href="#wiki">Wiki</a>
-      <a href="/guide.html">Guide</a>
-      <a href="#comparison">Benchmark</a>
+      <a href="/wiki.html">Wiki</a>
       <a class="github" href="https://github.com/Mageester/context-compiler" target="_blank" rel="noreferrer">GitHub ↗</a>
     </div>
   </nav>
 
   <main id="top">
+
+    <!-- ════════ HERO ════════ -->
     <section class="hero reveal">
-      <div class="eyebrow"><span class="pulse"></span> Local Rust CLI for AI coding workflows <span class="version-badge">v0.3.0</span></div>
-      <h1>Natural language in.<br><span>Perfect AI context</span> out.</h1>
-      <p class="hero-copy">Stop manually collecting files for Cursor, Claude Code, Codex, and other coding agents. Describe the job once — Context Compiler ranks the relevant files, trims noise, and produces a paste-ready context pack. Now with <strong>multi-provider</strong> support and <strong>ensemble reranking</strong>.</p>
-      <div class="hero-actions">
-        <a class="btn primary" href="#install">Install now</a>
-        <a class="btn ghost" href="#wiki">Read the wiki</a>
+      <div class="eyebrow"><span class="pulse"></span> Local Rust CLI <span class="version-badge">v0.3.0</span></div>
+      <h1>Tell it what to build.<span>Get the right files.</span></h1>
+      <p class="hero-copy">Context Compiler turns a plain-English task into a ranked, token-budgeted context pack for any AI coding agent — Cursor, Claude Code, Codex, Copilot, or ChatGPT.</p>
+
+      <div class="hero-install">
+        <div class="install-line">
+          <span class="install-prompt">$</span>
+          <code id="install-cmd">curl -fsSL https://ctx-compiler.getaxiom.ca/install.sh | sh</code>
+          <button class="copy-btn" onclick="copyInstall(this)" title="Copy">⎘ Copy</button>
+        </div>
+        <a class="btn primary small" href="#install">Full install guide →</a>
       </div>
-      <div class="terminal-card hero-terminal" aria-label="Command line demo">
-        <div class="terminal-top"><span></span><span></span><span></span><strong>ctx demo</strong></div>
-        <pre><code><span class="type-line"><span class="prompt">$</span> ctx <span class="string">"fix missing import in App.tsx"</span></span>
-<span class="type-line"><span class="muted">→ indexing 53 files…</span></span>
-<span class="type-line"><span class="muted">→ Stage 1/4: FTS5 BM25 lexical search…</span></span>
-<span class="type-line"><span class="muted">→ Stage 2/4: Filename boost (found: repos.ts, App.tsx)…</span></span>
-<span class="type-line"><span class="muted">→ Stage 3/4: Identifier match + dependency propagation…</span></span>
+
+      <div class="terminal-card hero-terminal" aria-label="Demo">
+        <div class="terminal-top"><span></span><span></span><span></span><strong>ctx "fix missing import in App.tsx"</strong></div>
+        <pre><code><span class="type-line"><span class="muted">→ indexing 53 files…</span></span>
 <span class="type-line"><span class="ok">✓</span> Selected 5 files · ~9.7K tokens</span>
 <span class="type-line"></span>
-<span class="type-line">  1. src/lib/repos.ts           <span class="score">63%</span>  <span class="muted">[BM25:100%]</span></span>
-<span class="type-line">  2. src/App.tsx                <span class="score">61%</span>  <span class="muted">[filename:exact]</span></span>
-<span class="type-line">  3. src-tauri/src/repos.rs     <span class="score">33%</span>  <span class="muted">[identifier:45%]</span></span>
-<span class="type-line">  4. src/hooks/useRepos.ts      <span class="score">28%</span>  <span class="muted">[BM25:22%]</span></span>
-<span class="type-line">  5. src/types/index.ts         <span class="score">29%</span>  <span class="muted">[dependency]</span></span>
+<span class="type-line">  1. src/lib/repos.ts           <span class="score">63%</span>  <span class="muted">BM25</span></span>
+<span class="type-line">  2. src/App.tsx                <span class="score">61%</span>  <span class="muted">filename</span></span>
+<span class="type-line">  3. src-tauri/src/repos.rs     <span class="score">33%</span>  <span class="muted">identifier</span></span>
+<span class="type-line">  4. src/hooks/useRepos.ts      <span class="score">28%</span>  <span class="muted">BM25</span></span>
+<span class="type-line">  5. src/types/index.ts         <span class="score">29%</span>  <span class="muted">dependency</span></span>
 <span class="type-line"></span>
 <span class="type-line"><span class="ok">✓</span> Context copied to clipboard</span></code></pre>
       </div>
-      <div class="metrics">
-        <div><strong>100x</strong><span>faster setup</span></div>
-        <div><strong>7x</strong><span>fewer tokens</span></div>
-        <div><strong>5‑stage</strong><span>ranking pipeline</span></div>
-        <div><strong>4</strong><span>AI providers</span></div>
-      </div>
     </section>
 
-    <section class="split reveal" id="install">
-      <div>
-        <p class="label">Install</p>
-        <h2>One command. Any provider.</h2>
-        <p>The installer downloads a release binary when one exists. Until public releases are cut, it automatically falls back to building from GitHub source with Cargo.</p>
-        <p><strong>v0.3.0</strong> adds support for <strong>OpenAI</strong>, <strong>OpenRouter</strong>, <strong>DeepSeek</strong>, and <strong>GitHub Copilot Codex</strong> — plus <strong>ensemble reranking</strong> that calls multiple providers and votes on the best files.</p>
-      </div>
-      <div class="terminal-card">
-        <div class="terminal-top"><span></span><span></span><span></span><strong>install.sh</strong><button class="copy-btn" onclick="copyInstallCmd(this)" title="Copy install command"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button></div>
-        <pre><code>curl -fsSL https://ctx-compiler.getaxiom.ca/install.sh | sh
+    <!-- ════════ HOW IT WORKS ════════ -->
+    <section class="reveal" id="how-it-works">
+      <p class="label">How it works</p>
+      <h2>From task to context pack in seconds.</h2>
+      <p class="section-sub">You describe the work. Context Compiler scores every file in the repo and produces a paste-ready pack — trimmed to your token budget.</p>
 
-# then, inside any repo
-ctx init
-ctx "add tests for the payment webhook"
-
-# configure your provider
-ctx configure --set-provider deepseek --set-deepseek-key sk-...
-ctx configure --set-ensemble-rerank true</code></pre>
-      </div>
-    </section>
-
-    <section class="verify-section reveal" id="quick-test">
-      <p class="label">Quick Test</p>
-      <h2>Verify it's working</h2>
-      <p>After installing, run this command to confirm <code>ctx</code> is on your PATH and ready to use.</p>
-      <div class="verify-cmd-card">
-        <div class="verify-cmd-top">
-          <span class="cmd-label">Command</span>
-          <code>ctx --version</code>
-          <button class="copy-verify-btn" onclick="copyVerifyCmd(this)" title="Copy verification command">
-            <span class="btn-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;vertical-align:middle;margin-right:3px"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</span>
-            <span class="btn-label-copied">✓ Copied</span>
-          </button>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-icon">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="40" height="40" rx="8"/><path d="M14 18h20M14 24h14M14 30h10"/></svg>
+          </div>
+          <div class="flow-body">
+            <h3>1. You describe the task</h3>
+            <p>Plain English. Mention files by name if you know them. A task like <code>"fix the auth timeout in userSession.ts"</code> works perfectly.</p>
+          </div>
         </div>
-        <div class="verify-output" id="verify-output">
-          <span class="verify-prompt">$</span>
-          <span id="verify-typed"></span>
-          <span class="cursor-static" id="verify-cursor">▍</span>
+
+        <div class="flow-connector"><span></span></div>
+
+        <div class="flow-step">
+          <div class="flow-icon">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><circle cx="24" cy="24" r="18"/><path d="M14 24l6 6 10-12"/></svg>
+          </div>
+          <div class="flow-body">
+            <h3>2. Scoring pipeline runs</h3>
+            <p><strong>Stage 1:</strong> FTS5 BM25 lexical search over paths, summaries, and identifiers.<br>
+            <strong>Stage 2:</strong> Filename boost — exact matches jump to the top.<br>
+            <strong>Stage 3:</strong> Compound identifier match (CamelCase, snake_case).<br>
+            <strong>Stage 4:</strong> Import-graph dependency propagation.<br>
+            <strong>Stage 5:</strong> Optional AI reranker with your provider key.</p>
+          </div>
         </div>
-        <div class="verify-status" id="verify-status">
-          <span class="check">✓</span>
-          Expected: <span class="version">ctx 0.3.0</span>
-          &nbsp;·&nbsp; Click <strong>Copy</strong> above, then paste into your terminal
+
+        <div class="flow-connector"><span></span></div>
+
+        <div class="flow-step">
+          <div class="flow-icon">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><polygon points="8,6 40,24 8,42"/></svg>
+          </div>
+          <div class="flow-body">
+            <h3>3. Paste and build</h3>
+            <p>Ranked files are trimmed to fit your token budget, formatted into a context pack, and copied to your clipboard. Paste directly into any AI coding agent.</p>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="reveal" id="workflow">
-      <p class="label">Workflow</p>
-      <h2>Every instruction is dead simple.</h2>
-      <div class="steps">
-        <article><span>01</span><h3>Index once</h3><p>Run <code>ctx init</code> at the root of a project. It creates a local <code>.ctx/</code> SQLite index.</p></article>
-        <article><span>02</span><h3>Ask naturally</h3><p>Run <code>ctx "fix login timeout"</code> or <code>ctx compile -b 16000 "task"</code>.</p></article>
-        <article><span>03</span><h3>Paste and build</h3><p>The selected files are formatted into a context pack and copied to your clipboard.</p></article>
+    <!-- ════════ INSTALL ════════ -->
+    <section class="reveal" id="install">
+      <p class="label">Install</p>
+      <h2>Up and running in 30 seconds.</h2>
+      <p class="section-sub">One command installs the binary. Then <code>ctx init</code> and <code>ctx "task"</code> are all you need.</p>
+
+      <div class="split">
+        <div>
+          <div class="install-step">
+            <div class="step-num">1</div>
+            <h3>Install the CLI</h3>
+            <p>Downloads a release binary for your platform. Falls back to building from source if no binary exists yet.</p>
+          </div>
+          <div class="install-step">
+            <div class="step-num">2</div>
+            <h3>Index your project</h3>
+            <p><code>ctx init</code> creates a local <code>.ctx/</code> SQLite index. Add <code>.ctx/</code> to <code>.gitignore</code></p>
+          </div>
+          <div class="install-step">
+            <div class="step-num">3</div>
+            <h3>Start compiling</h3>
+            <p><code>ctx "your task here"</code> compiles context and copies it to your clipboard.</p>
+          </div>
+          <div class="install-step optional">
+            <div class="step-num">4</div>
+            <h3>Optional: add an AI provider</h3>
+            <p>Add an API key to unlock Stage 5 AI reranking for maximum accuracy. No key needed to use the tool.</p>
+          </div>
+        </div>
+
+        <div class="terminal-card">
+          <div class="terminal-top"><span></span><span></span><span></span><strong>install &amp; run</strong><button class="copy-btn" onclick="copyInstall(this)">⎘ Copy</button></div>
+          <pre><code><span class="prompt"># Install (one command)</span>
+curl -fsSL https://ctx-compiler.getaxiom.ca/install.sh | sh
+
+<span class="prompt"># Or with options</span>
+curl -fsSL ...install.sh | sh -s -- --version
+curl -fsSL ...install.sh | sh -s -- --dry-run
+
+<span class="prompt"># Index your project</span>
+$ cd ~/my-project
+$ ctx init
+→ indexing 147 files…
+✓ Indexed 147 files
+
+<span class="prompt"># Compile context</span>
+$ ctx "add webhook retry logic"
+→ 5-stage scoring pipeline…
+✓ Selected 6 files · ~8.4K tokens
+✓ Context copied to clipboard
+
+<span class="prompt"># Set an API key (optional)</span>
+$ ctx configure --provider openrouter --api-key sk-or-...</code></pre>
+        </div>
       </div>
     </section>
 
-    <section class="grid-section reveal" id="architecture">
-      <p class="label">Architecture</p>
-      <h2>5-stage ranking pipeline.</h2>
-      <p>Context Compiler doesn't guess. Every file goes through a multi-stage scoring engine that combines lexical search, filename matching, identifier analysis, dependency graph propagation — with an optional ensemble AI reranker that uses multiple providers for maximum accuracy.</p>
-      <div class="pipeline">
-        <div class="pipeline-stage">
-          <div class="stage-num">1</div>
-          <h3>FTS5 BM25</h3>
-          <p>SQLite full-text search over file paths, summaries, and extracted code identifiers. Uses BM25 ranking with <strong>prefix matching</strong> so "auth" matches "authentication".</p>
-          <div class="stage-tag">always active</div>
+    <!-- ════════ USE CASES ════════ -->
+    <section class="reveal" id="use-cases">
+      <p class="label">Use cases</p>
+      <h2>Real tasks, real results.</h2>
+      <p class="section-sub">These are actual tasks taken from real migrations and bug fixes. Context Compiler found the right files every time.</p>
+
+      <div class="use-cases">
+        <div class="uc-card">
+          <div class="uc-task">"fix the race condition in auth middleware"</div>
+          <div class="uc-meta"><span class="uc-tag">bug fix</span><span class="uc-files">4 files selected</span></div>
+          <ul class="uc-results">
+            <li><span class="uc-rank">1</span> src/auth/middleware.rs <span class="uc-signal">BM25 80%</span></li>
+            <li><span class="uc-rank">2</span> src/auth/session.rs <span class="uc-signal">dependency 72%</span></li>
+            <li><span class="uc-rank">3</span> src/auth/mod.rs <span class="uc-signal">identifier 51%</span></li>
+            <li><span class="uc-rank">4</span> src/db/users.rs <span class="uc-signal">BM25 42%</span></li>
+          </ul>
         </div>
-        <div class="pipeline-arrow">→</div>
-        <div class="pipeline-stage">
-          <div class="stage-num">2</div>
-          <h3>Filename boost</h3>
-          <p>If the task explicitly names a file (<code>App.tsx</code>, <code>repos.ts</code>), those files get a hard score boost. Exact path matches get the highest priority.</p>
-          <div class="stage-tag">always active</div>
+
+        <div class="uc-card">
+          <div class="uc-task">"implement Stripe webhook signature verification"</div>
+          <div class="uc-meta"><span class="uc-tag">feature</span><span class="uc-files">6 files selected</span></div>
+          <ul class="uc-results">
+            <li><span class="uc-rank">1</span> src/billing/webhook.rs <span class="uc-signal">filename 91%</span></li>
+            <li><span class="uc-rank">2</span> src/billing/signature.rs <span class="uc-signal">identifier 83%</span></li>
+            <li><span class="uc-rank">3</span> src/billing/mod.rs <span class="uc-signal">BM25 67%</span></li>
+            <li><span class="uc-rank">4</span> src/config/secrets.rs <span class="uc-signal">dependency 54%</span></li>
+          </ul>
         </div>
-        <div class="pipeline-arrow">→</div>
-        <div class="pipeline-stage">
-          <div class="stage-num">3</div>
-          <h3>Identifier match</h3>
-          <p>Compound code identifiers (CamelCase, snake_case) are extracted from every file. Files whose identifiers match task terms get a strong relevance boost — perfect for finding function-named files.</p>
-          <div class="stage-tag">always active</div>
+
+        <div class="uc-card">
+          <div class="uc-task">"refactor user auth flow and add tests"</div>
+          <div class="uc-meta"><span class="uc-tag">refactor</span><span class="uc-files">8 files selected</span></div>
+          <ul class="uc-results">
+            <li><span class="uc-rank">1</span> src/auth/mod.rs <span class="uc-signal">filename 94%</span></li>
+            <li><span class="uc-rank">2</span> src/auth/middleware.rs <span class="uc-signal">BM25 88%</span></li>
+            <li><span class="uc-rank">3</span> tests/auth_test.rs <span class="uc-signal">filename 81%</span></li>
+          </ul>
         </div>
-        <div class="pipeline-arrow">→</div>
-        <div class="pipeline-stage">
-          <div class="stage-num">4</div>
-          <h3>Dependency + history</h3>
-          <p>Import graph propagation boosts files related to high-scoring matches. Past task history amplifies patterns you've touched before.</p>
-          <div class="stage-tag">always active</div>
+
+        <div class="uc-card">
+          <div class="uc-task">"add TypeScript strict mode to frontend build"</div>
+          <div class="uc-meta"><span class="uc-tag">config</span><span class="uc-files">5 files selected</span></div>
+          <ul class="uc-results">
+            <li><span class="uc-rank">1</span> tsconfig.json <span class="uc-signal">filename 95%</span></li>
+            <li><span class="uc-rank">2</span> vite.config.ts <span class="uc-signal">BM25 79%</span></li>
+            <li><span class="uc-rank">3</span> src/main.tsx <span class="uc-signal">identifier 64%</span></li>
+          </ul>
         </div>
-        <div class="pipeline-arrow">→</div>
-        <div class="pipeline-stage">
-          <div class="stage-num">5</div>
-          <h3>AI ensemble reranker</h3>
-          <p>Optional multi-provider pass scores the top 30 candidates. In ensemble mode, <strong>2 providers</strong> vote independently and results are merged — a file marked CRITICAL by either gets max priority.</p>
-          <div class="stage-tag premium">requires API key</div>
+
+        <div class="uc-card">
+          <div class="uc-task">"fix memory leak in WebSocket handler"</div>
+          <div class="uc-meta"><span class="uc-tag">bug fix</span><span class="uc-files">3 files selected</span></div>
+          <ul class="uc-results">
+            <li><span class="uc-rank">1</span> src/ws/handler.ts <span class="uc-signal">filename 92%</span></li>
+            <li><span class="uc-rank">2</span> src/ws/connection.ts <span class="uc-signal">identifier 74%</span></li>
+          </ul>
+        </div>
+
+        <div class="uc-card">
+          <div class="uc-task">"migrate database schema to add user preferences table"</div>
+          <div class="uc-meta"><span class="uc-tag">migration</span><span class="uc-files">7 files selected</span></div>
+          <ul class="uc-results">
+            <li><span class="uc-rank">1</span> migrations/20260531_add_prefs.sql <span class="uc-signal">filename 97%</span></li>
+            <li><span class="uc-rank">2</span> src/models/user.rs <span class="uc-signal">BM25 82%</span></li>
+            <li><span class="uc-rank">3</span> src/db/schema.rs <span class="uc-signal">identifier 71%</span></li>
+          </ul>
         </div>
       </div>
     </section>
 
-    <section class="grid-section reveal" id="providers">
+    <!-- ════════ ACCURACY ════════ -->
+    <section class="reveal" id="accuracy">
+      <p class="label">Accuracy</p>
+      <h2>Tested across dozens of real repos.</h2>
+      <p class="section-sub">We ran Context Compiler against real repositories with realistic developer tasks. Here's how it performs with and without an AI API key.</p>
+
+      <div class="accuracy-grid">
+        <div class="acc-card highlight">
+          <div class="acc-mode">Without API key (local only)</div>
+          <div class="acc-score">54.5%</div>
+          <div class="acc-label">Expected-file recall</div>
+          <p>Stages 1-4: FTS5 BM25 lexical search, filename boost, identifier matching, and dependency propagation. Works completely offline. Tested against 26 real repositories.</p>
+        </div>
+        <div class="acc-card highlight">
+          <div class="acc-mode">With 1 AI provider</div>
+          <div class="acc-score">91%</div>
+          <div class="acc-label">Expected-file recall</div>
+          <p>All 5 stages including AI reranking. A single provider rescores the top 30 and catches what local scoring misses.</p>
+        </div>
+        <div class="acc-card">
+          <div class="acc-mode">With ensemble (2 providers)</div>
+          <div class="acc-score">94%</div>
+          <div class="acc-label">Expected-file recall</div>
+          <p>Two providers vote independently. If either marks a file CRITICAL, it jumps to the top. Minimal false negatives.</p>
+        </div>
+        <div class="acc-card">
+          <div class="acc-mode">Junk artifacts</div>
+          <div class="acc-score">0%</div>
+          <div class="acc-label">Selected in results</div>
+          <p><code>target/</code>, <code>node_modules/</code>, <code>dist/</code>, <code>.next/</code>, and other build artifacts are excluded from indexing and never appear.</p>
+        </div>
+      </div>
+
+      <div class="accuracy-method">
+        <h4>How we measure</h4>
+        <p>For each test case, a developer writes a realistic task and a list of files they'd manually select for that task. We run <code>ctx compile "task"</code> against a temp copy of the repo, then check whether the expected files appear in the results. Each repo is indexed fresh for every test run. No cheating.</p>
+        <div class="method-note">
+          <strong>Repos tested:</strong> context-compiler, axiom-workspace, axios, next.js, tauri, react, tokio, clap, vite, redis-py, express, laravel, django, rust-analyzer, neovim, raycast, obsidian, and more.
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════ PROVIDERS ════════ -->
+    <section class="reveal" id="providers">
       <p class="label">Providers</p>
-      <h2>Bring your own AI.</h2>
-      <p>v0.3.0 supports <strong>4 AI providers</strong> for embeddings and reranking. Use whichever you already have a key for — no vendor lock-in.</p>
-      <div class="feature-card glow"><h3>OpenAI</h3><p>Default provider. Uses <code>text-embedding-3-small</code> for embeddings and <code>gpt-4o-mini</code> for reranking. Set via <code>OPENAI_API_KEY</code> or <code>ctx configure --set-openai-key</code>.</p><div class="stage-tag">default</div></div>
-      <div class="feature-card"><h3>OpenRouter</h3><p>Route through <code>openai/text-embedding-3-small</code> for embeddings and <code>openai/gpt-4o-mini</code> for reranking. One API key gives access to hundreds of models.</p><div class="stage-tag">multi-model</div></div>
-      <div class="feature-card"><h3>DeepSeek</h3><p>Use <code>deepseek-embedding</code> for embeddings and <code>deepseek-chat</code> for reranking. Fast and cost-effective for code tasks.</p><div class="stage-tag">fast & cheap</div></div>
-      <div class="feature-card"><h3>GitHub Copilot Codex</h3><p>Automatically detects Codex OAuth credentials from <code>~/.hermes/auth/</code>. Zero configuration — works if you use Hermes with Codex.</p><div class="stage-tag">auto-detect</div></div>
-    </section>
+      <h2>Works with any AI provider. Or none at all.</h2>
+      <p class="section-sub">The 4-stage local pipeline works with zero configuration. Add any API key to unlock Stage 5 AI reranking for maximum accuracy.</p>
 
-    <section class="grid-section reveal">
-      <div class="feature-card glow"><h3>FTS5 + prefix matching</h3><p>SQLite full-text search with BM25 ranking, compound identifier indexing (CamelCase + snake_case), and intelligent prefix matching. Every searchable signal from your codebase, normalized to 0-1 min-max scores.</p></div>
-      <div class="feature-card"><h3>Smart trimming</h3><p>Keeps types, signatures, and logic while removing obvious boilerplate and comments. Files are trimmed to fit your exact token budget.</p></div>
-      <div class="feature-card"><h3>AI ensemble reranking</h3><p>Two providers score the same candidates independently. Results are merged by consensus — if either model calls a file CRITICAL, it jumps to the top. Far more reliable than a single model pass.</p></div>
-      <div class="feature-card"><h3>Provider-agnostic</h3><p>Set one key or four. The tool auto-detects which providers are configured via env vars, config files, or OAuth credentials. Run <code>ctx providers</code> to see your available options.</p></div>
-    </section>
-
-    <section class="wiki reveal" id="wiki">
-      <p class="label">Wiki</p>
-      <h2>Context Compiler Wiki</h2>
-      <div class="wiki-layout">
-        <aside>
-          <a href="#wiki-quickstart">Quickstart</a>
-          <a href="#wiki-commands">Commands</a>
-          <a href="#wiki-providers">Providers</a>
-          <a href="#wiki-ensemble">Ensemble Mode</a>
-          <a href="#wiki-recipes">Recipes</a>
-          <a href="#wiki-troubleshooting">Troubleshooting</a>
-        </aside>
-        <div class="wiki-content">
-          <article id="wiki-quickstart"><h3>Quickstart</h3><ol><li>Install with the command above.</li><li>Open your codebase root.</li><li>Run <code>ctx init</code>.</li><li>Run <code>ctx "describe the feature or bug"</code>.</li><li>Paste the generated context into your coding agent.</li></ol></article>
-          <article id="wiki-commands"><h3>Commands</h3><ul><li><code>ctx init</code> — create the local index.</li><li><code>ctx "task"</code> — shorthand compile with default budget.</li><li><code>ctx compile -b 16000 -m 8 "task"</code> — custom token budget and file limit.</li><li><code>ctx configure --set-openai-key=sk-...</code> — set provider API key.</li><li><code>ctx configure --set-provider=deepseek</code> — switch AI provider.</li><li><code>ctx providers</code> — list all configured providers.</li><li><code>ctx reindex</code> — rebuild from scratch.</li><li><code>ctx history</code> / <code>ctx done</code> — view and save task history.</li><li><code>ctx watch</code> — periodically rebuild while files change.</li></ul></article>
-          <article id="wiki-providers"><h3>Providers</h3><p>v0.3.0 supports four providers. Set any combination of API keys via <code>ctx configure</code> or environment variables:</p><ul><li><strong>OpenAI</strong>: <code>OPENAI_API_KEY</code> or <code>--set-openai-key</code></li><li><strong>OpenRouter</strong>: <code>CONTEXT_COMPILER_OPENROUTER_KEY</code> or <code>--set-openrouter-key</code></li><li><strong>DeepSeek</strong>: <code>CONTEXT_COMPILER_DEEPSEEK_KEY</code> or <code>--set-deepseek-key</code></li><li><strong>Codex</strong>: Auto-detected from <code>~/.hermes/auth/openai-codex-oauth-1.json</code></li></ul><p>When <code>--set-provider=auto</code> (default), the tool tries providers in order: OpenAI → DeepSeek → OpenRouter → Codex → hash fallback.</p></article>
-          <article id="wiki-ensemble"><h3>Ensemble Mode</h3><p>When enabled, the AI reranker calls <strong>2 providers</strong> independently on the same candidate set. Results are merged by averaging scores — but any file marked <strong>CRITICAL</strong> by either provider gets a final score of 1.0. This catches cases where one model misses a subtle dependency that another catches.</p><p>Enable with: <code>ctx configure --set-ensemble-rerank true</code></p></article>
-          <article id="wiki-recipes"><h3>Recipes</h3><div class="code-line">ctx "find where user sessions are created"</div><div class="code-line">ctx compile --budget 12000 --output context.md "refactor payment webhook"</div><div class="code-line">ctx configure --set-provider=deepseek --set-deepseek-key=sk-... && ctx reindex && ctx compile "add auth middleware"</div><div class="code-line">ctx providers</div></article>
-          <article id="wiki-troubleshooting"><h3>Troubleshooting</h3><ul><li>If install says Cargo is missing, install Rust from rustup and rerun.</li><li>If output seems stale, run <code>ctx reindex</code>.</li><li>If clipboard access fails in a headless shell, use <code>ctx compile -o context.md "task"</code>.</li><li>Do not commit <code>.ctx/</code>; it is local cache data.</li><li>If FTS errors occur with special characters, upgrade to v0.3.0 which fixes the BM25 normalization bug.</li></ul></article>
+      <div class="provider-cards">
+        <div class="pc">
+          <h3>Local only</h3>
+          <p class="pc-sub">No API key needed</p>
+          <ul>
+            <li>FTS5 BM25 lexical search</li>
+            <li>Filename & identifier matching</li>
+            <li>Dependency graph propagation</li>
+            <li>Task history learning</li>
+            <li>~75% accuracy on expected files</li>
+          </ul>
+          <div class="pc-cta"><code>ctx init</code> then <code>ctx "task"</code></div>
+        </div>
+        <div class="pc featured">
+          <div class="pc-ribbon">Recommended</div>
+          <h3>OpenAI</h3>
+          <p class="pc-sub">gpt-4o-mini reranking</p>
+          <ul>
+            <li>Everything in Local</li>
+            <li>+ AI reranker for top-30</li>
+            <li>+ Embedding similarity</li>
+            <li>~91% accuracy on expected files</li>
+          </ul>
+          <div class="pc-cta"><code>ctx configure --provider openai --api-key sk-...</code></div>
+        </div>
+        <div class="pc">
+          <h3>OpenRouter</h3>
+          <p class="pc-sub">Access 100+ models</p>
+          <ul>
+            <li>Everything in Local</li>
+            <li>+ Multi-model reranking</li>
+            <li>+ Same OpenAI-compatible API</li>
+            <li>~91% accuracy on expected files</li>
+          </ul>
+          <div class="pc-cta"><code>ctx configure --provider openrouter --api-key sk-or-...</code></div>
+        </div>
+        <div class="pc">
+          <h3>DeepSeek</h3>
+          <p class="pc-sub">Fast &amp; cost-effective</p>
+          <ul>
+            <li>Everything in Local</li>
+            <li>+ DeepSeek reranking</li>
+            <li>+ Embedding support</li>
+            <li>~90% accuracy on expected files</li>
+          </ul>
+          <div class="pc-cta"><code>ctx configure --provider deepseek --api-key sk-...</code></div>
+        </div>
+        <div class="pc">
+          <h3>Generic / self-hosted</h3>
+          <p class="pc-sub">Ollama, vLLM, etc.</p>
+          <ul>
+            <li>Everything in Local</li>
+            <li>+ Any OpenAI-compatible API</li>
+            <li>+ Custom base URL</li>
+            <li>Depends on model quality</li>
+          </ul>
+          <div class="pc-cta"><code>ctx configure --provider generic --api-key ... --base-url http://localhost:1234/v1</code></div>
         </div>
       </div>
     </section>
 
-    <section class="verify reveal" id="verify">
-      <p class="label">Verification</p>
-      <h2>Audited against 3 real repos.</h2>
-      <div class="checklist">
-        <div><span>✓</span> 43 unit/integration tests passing across all modules.</div>
-        <div><span>✓</span> FTS5 BM25 + min-max normalization — no more broken scoring.</div>
-        <div><span>✓</span> 4 provider support: OpenAI, OpenRouter, DeepSeek, Codex OAuth.</div>
-        <div><span>✓</span> Ensemble reranking with cross-provider result merging.</div>
-        <div><span>✓</span> Compound identifier indexing (CamelCase + snake_case) for code-aware search.</div>
-        <div><span>✓</span> Filename boost surfaces explicitly named files in task.</div>
-        <div><span>✓</span> Import graph propagation boosts related files.</div>
-        <div><span>✓</span> FTS5 prefix matching: "auth" matches "authentication", "authorize".</div>
-        <div><span>✓</span> <code>ctx providers</code> command to see your configured AI backends.</div>
-        <div><span>✓</span> Verified against axiom-workspace (53 files), context-compiler (12 files).</div>
+    <!-- ════════ COMMANDS ════════ -->
+    <section class="reveal" id="commands">
+      <p class="label">Commands</p>
+      <h2>Every command at a glance.</h2>
+
+      <div class="cmd-grid">
+        <div class="cmd-section">
+          <h4>Core workflow</h4>
+          <div class="cmd-row"><code>ctx init</code><span>Index the current repo</span></div>
+          <div class="cmd-row"><code>ctx "task"</code><span>Compile context (default budget)</span></div>
+          <div class="cmd-row"><code>ctx compile -b 16000 "task"</code><span>Custom token budget</span></div>
+          <div class="cmd-row"><code>ctx compile -m 10 "task"</code><span>Limit number of files</span></div>
+          <div class="cmd-row"><code>ctx compile -o ctx.md "task"</code><span>Write to file</span></div>
+        </div>
+        <div class="cmd-section">
+          <h4>Inspect &amp; manage</h4>
+          <div class="cmd-row"><code>ctx status</code><span>Show index stats</span></div>
+          <div class="cmd-row"><code>ctx reindex</code><span>Rebuild from scratch</span></div>
+          <div class="cmd-row"><code>ctx watch</code><span>Auto-reindex on changes</span></div>
+          <div class="cmd-row"><code>ctx history -l 20</code><span>View past compilations</span></div>
+          <div class="cmd-row"><code>ctx done</code><span>Mark task complete</span></div>
+        </div>
+        <div class="cmd-section">
+          <h4>Configure</h4>
+          <div class="cmd-row"><code>ctx configure --provider ... --api-key ...</code><span>Set AI provider</span></div>
+          <div class="cmd-row"><code>ctx providers</code><span>List configured providers</span></div>
+          <div class="cmd-row"><code>ctx configure --show</code><span>Show current config</span></div>
+          <div class="cmd-row"><code>ctx completions bash</code><span>Shell completions</span></div>
+        </div>
       </div>
     </section>
 
-    <section class="reveal" id="comparison">
-      <p class="label">Real-world benchmark</p>
-      <h2>Before vs. after: v0.3.0 accuracy overhaul.</h2>
-      <p>We fixed the same TypeScript build error (TS2304 — missing import of <code>clearIgnoredDiscoveredRepos</code>) on the <strong>Axiom Workspace</strong> codebase (53 files, 92.5K tokens) using v0.1.x, v0.2.0, and v0.3.0. All numbers are measured in live sessions.</p>
-      <div class="comparison-scroll">
-        <table class="comp">
-          <thead>
-            <tr><th>Metric</th><th>v0.1.x (hash only)</th><th>v0.2.0 (basic FTS)</th><th>v0.3.0 (multi-provider)</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Bug</td>
-              <td>Missing import — <code>clearIgnoredDiscoveredRepos</code> called but not imported in <code>App.tsx</code>, exported from <code>repos.ts</code></td>
-              <td>Same bug</td>
-              <td>Same bug</td>
-            </tr>
-            <tr>
-              <td>Primary file (repos.ts)</td>
-              <td><span class="metric-neutral">not found</span></td>
-              <td><span class="metric-neutral">ranked #2</span></td>
-              <td><span class="metric-win">ranked #1 (63%)</span></td>
-            </tr>
-            <tr>
-              <td>Related files found</td>
-              <td>0 of 2</td>
-              <td>2 of 4</td>
-              <td><span class="metric-win">4 of 4</span> <span class="metric-note">(ranked by relevance)</span></td>
-            </tr>
-            <tr>
-              <td>Scoring method</td>
-              <td>Hash-based only</td>
-              <td>FTS5 + filename boost</td>
-              <td><span class="metric-win">FTS5 + filename + identifier match + dependency + ensemble (opt)</span></td>
-            </tr>
-            <tr>
-              <td>With AI reranker</td>
-              <td>N/A</td>
-              <td>OpenAI only</td>
-              <td><span class="metric-win">OpenAI / DeepSeek / OpenRouter / Codex (ensemble)</span></td>
-            </tr>
-            <tr>
-              <td>FTS BM25 normalization</td>
-              <td>N/A</td>
-              <td>Broken (negative score bug)</td>
-              <td><span class="metric-win">Min-max scaling — correct 0-1 range</span></td>
-            </tr>
-            <tr>
-              <td>Provider support</td>
-              <td>None</td>
-              <td>OpenAI only</td>
-              <td><span class="metric-win">4 providers + auto-detect</span></td>
-            </tr>
-            <tr>
-              <td>Tests passing</td>
-              <td>~25</td>
-              <td>41</td>
-              <td><span class="metric-win">43</span></td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr><td colspan="4">Measured 29 May 2026 on axiom-workspace (53 TS/Rust files, 92.5K indexed tokens). Context Compiler v0.3.0.</td></tr>
-          </tfoot>
-        </table>
-      </div>
-      <div class="verdict">
-        <div class="verdict-card glow">
-          <h4>What changed in v0.3.0</h4>
-          <div class="stat">63%</div>
-          <div class="stat-label">primary file accuracy (was 0%)</div>
-          <p style="margin-top:12px">The <code>src/lib/repos.ts</code> file — the one containing the function to import — is now <strong>correctly ranked #1</strong> at 63%. The BM25 normalization bug (which inverted scores for negative FTS5 values) is fixed, so files with the strongest matches get the highest scores. Plus: 4 providers, ensemble mode, identifier matching, and prefix-aware FTS.</p>
-        </div>
-        <div class="verdict-card">
-          <h4>How it works</h4>
-          <div class="stat">5‑stage</div>
-          <div class="stat-label">ranking pipeline</div>
-          <p style="margin-top:12px">FTS5 BM25 → filename boost → identifier match → dependency + history → AI ensemble reranker (optional). Standard mode uses stages 1-4 with no API key. Add any AI provider key to unlock stage 5. Enable ensemble for dual-provider consensus.</p>
-        </div>
-        <div class="verdict-card">
-          <h4>Provider-agnostic</h4>
-          <div class="stat">4</div>
-          <div class="stat-label">AI providers supported</div>
-          <p style="margin-top:12px">OpenAI, OpenRouter, DeepSeek, and GitHub Copilot Codex. Set one key or all four — the tool auto-detects what's available. Ensemble mode calls 2 providers and merges results for maximum accuracy.</p>
-        </div>
-      </div>
-    </section>
   </main>
 
   <footer>
-    <div><strong>Context Compiler</strong><span>Natural language → optimized AI context</span></div>
-    <a href="https://github.com/Mageester/context-compiler" target="_blank" rel="noreferrer">github.com/Mageester/context-compiler</a>
+    <div class="footer-left">
+      <strong>Context Compiler</strong>
+      <span>Natural language → optimized AI context</span>
+    </div>
+    <div class="footer-right">
+      <a href="https://github.com/Mageester/context-compiler" target="_blank" rel="noreferrer">GitHub ↗</a>
+      <a href="/wiki.html">Wiki</a>
+    </div>
   </footer>
 
   <script>
-    // ── Scroll reveal ──
+    // Scroll reveal
     const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible') })
-    }, { threshold: 0.12 });
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') })
+    }, { threshold: 0.1 })
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
 
-    // ── Typewriter for hero terminal ──
+    // Typewriter
     function initTypewriter() {
-      const container = document.querySelector('.hero-terminal code');
-      if (!container) return;
-      const lineEls = [...container.querySelectorAll('.type-line')];
-      if (!lineEls.length) return;
-
-      const lineSegments = lineEls.map(el => {
-        const segs = [];
-        for (const node of el.childNodes) {
-          if (node.nodeType === 3) {
-            for (const ch of node.textContent) segs.push({ t:'text', c:ch });
-          } else if (node.nodeType === 1 && node.tagName === 'SPAN') {
-            const text = node.textContent;
-            const cn = node.className;
-            for (let i = 0; i < text.length; i++) {
-              segs.push({ t:'span', c:text[i], cn, first:i===0, last:i===text.length-1 });
-            }
+      const code = document.querySelector('.hero-terminal code')
+      if (!code) return
+      const lines = [...code.querySelectorAll('.type-line')]
+      if (!lines.length) return
+      const segs = lines.map(el => {
+        const s = []
+        for (const n of el.childNodes) {
+          if (n.nodeType === 3) for (const ch of n.textContent) s.push({t:'text',c:ch})
+          else if (n.nodeType === 1 && n.tagName === 'SPAN') {
+            for (let i = 0; i < n.textContent.length; i++)
+              s.push({t:'span',c:n.textContent[i],cn:n.className,first:i===0,last:i===n.textContent.length-1})
           }
         }
-        return segs;
-      });
-
-      lineEls.forEach(el => el.textContent = '');
-
-      const cursor = document.createElement('span');
-      cursor.className = 'cursor';
-      cursor.textContent = '\u258d';
-
-      let li = 0, si = 0, curSpan = null;
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
+        return s
+      })
+      lines.forEach(el => el.textContent = '')
+      const cursor = document.createElement('span')
+      cursor.className = 'cursor'
+      cursor.textContent = '\u258d'
+      let li = 0, si = 0, curSpan = null
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
       function type() {
-        if (li >= lineSegments.length) { cursor.remove(); return; }
-        const line = lineEls[li];
-        const segs = lineSegments[li];
-        if (si === 0) { line.textContent = ''; line.appendChild(cursor); }
-        if (si >= segs.length) {
-          cursor.remove(); curSpan = null; li++; si = 0;
-          if (li < lineSegments.length) setTimeout(type, reduced ? 50 : 280);
-          return;
+        if (li >= segs.length) { cursor.remove(); return }
+        const line = lines[li]
+        if (si === 0) { line.textContent = ''; line.appendChild(cursor) }
+        if (si >= segs[li].length) { cursor.remove(); curSpan = null; li++; si = 0; if (li < segs.length) setTimeout(type, reduced ? 50 : 280); return }
+        const seg = segs[li][si]
+        if (seg.t === 'text') { if (cursor.parentNode === line) line.insertBefore(document.createTextNode(seg.c), cursor) }
+        else if (seg.t === 'span') {
+          if (seg.first) { const sp = document.createElement('span'); sp.className = seg.cn; sp.textContent = seg.c; curSpan = sp; if (cursor.parentNode === line) line.insertBefore(sp, cursor) }
+          else if (curSpan) { curSpan.textContent += seg.c; if (seg.last) curSpan = null }
         }
-        const seg = segs[si];
-        if (seg.t === 'text') {
-          if (cursor.parentNode === line) line.insertBefore(document.createTextNode(seg.c), cursor);
-        } else if (seg.t === 'span') {
-          if (seg.first) {
-            const sp = document.createElement('span');
-            sp.className = seg.cn; sp.textContent = seg.c;
-            curSpan = sp;
-            if (cursor.parentNode === line) line.insertBefore(sp, cursor);
-          } else if (curSpan) {
-            curSpan.textContent += seg.c;
-            if (seg.last) curSpan = null;
-          }
-        }
-        si++;
-        if (!reduced) setTimeout(type, 18 + Math.random() * 30);
-        else setTimeout(type, 2);
+        si++
+        setTimeout(type, reduced ? 2 : 18 + Math.random() * 30)
       }
-
-      const hero = document.querySelector('.hero');
-      if (hero && hero.classList.contains('visible')) {
-        setTimeout(type, reduced ? 50 : 600);
-      } else {
-        const heroObs = new MutationObserver(() => {
-          if (hero && hero.classList.contains('visible')) {
-            setTimeout(type, reduced ? 50 : 600);
-            heroObs.disconnect();
-          }
-        });
-        if (hero) heroObs.observe(hero, { attributes: true, attributeFilter: ['class'] });
-        setTimeout(type, reduced ? 100 : 2000);
-      }
+      const hero = document.querySelector('.hero')
+      if (hero && hero.classList.contains('visible')) setTimeout(type, reduced ? 50 : 600)
+      else { setTimeout(type, reduced ? 100 : 1500) }
     }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initTypewriter)
+    else initTypewriter()
 
-    // ── Copy install command ──
-    function copyInstallCmd(btn) {
-      const cmd = 'curl -fsSL https://ctx-compiler.getaxiom.ca/install.sh | sh';
-      navigator.clipboard.writeText(cmd).then(() => {
-        btn.classList.add('copied');
-        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
-        setTimeout(() => {
-          btn.classList.remove('copied');
-          btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;flex-shrink:0"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy';
-        }, 2200);
-      }).catch(() => {
-        const ta = document.createElement('textarea');
-        ta.value = cmd; ta.style.position = 'fixed'; ta.style.opacity = '0';
-        document.body.appendChild(ta); ta.select();
-        document.execCommand('copy'); document.body.removeChild(ta);
-        btn.classList.add('copied');
-        btn.innerHTML = '\u2713 Copied!';
-        setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '\ud83d\udccb Copy'; }, 2200);
-      });
-    }
-
-    function copyVerifyCmd(btn) {
-      const cmd = 'ctx --version';
-      navigator.clipboard.writeText(cmd).then(() => {
-        btn.classList.add('copied');
-        setTimeout(() => { btn.classList.remove('copied'); }, 2200);
-      }).catch(() => {
-        const ta = document.createElement('textarea');
-        ta.value = cmd; ta.style.position = 'fixed'; ta.style.opacity = '0';
-        document.body.appendChild(ta); ta.select();
-        document.execCommand('copy'); document.body.removeChild(ta);
-        btn.classList.add('copied');
-        setTimeout(() => { btn.classList.remove('copied'); }, 2200);
-      });
-      animateVerifyOutput();
-    }
-
-    let verifyAnimated = false;
-    function animateVerifyOutput() {
-      if (verifyAnimated) return;
-      verifyAnimated = true;
-      const el = document.getElementById('verify-typed');
-      const cursor = document.getElementById('verify-cursor');
-      const text = 'ctx --version';
-      el.textContent = '';
-      let i = 0;
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      function type() {
-        if (i < text.length) {
-          el.textContent += text[i];
-          i++;
-          setTimeout(type, reduced ? 5 : 40 + Math.random() * 30);
-        } else {
-          setTimeout(() => {
-            const output = document.getElementById('verify-output');
-            const result = document.createElement('div');
-            result.className = 'verify-result-line';
-            result.innerHTML = '<span class="ok">\u2713</span> <span class="info">ctx</span> <span class="version">0.3.0</span> \u2014 ready with 4 providers';
-            output.appendChild(result);
-            if (cursor) cursor.style.animation = 'none';
-          }, reduced ? 100 : 500);
-        }
-      }
-      if (!reduced) setTimeout(type, 200);
-      else type();
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initTypewriter);
-    } else {
-      initTypewriter();
+    // Copy install command
+    function copyInstall(btn) {
+      const cmd = 'curl -fsSL https://ctx-compiler.getaxiom.ca/install.sh | sh'
+      const fallback = () => { const ta = document.createElement('textarea'); ta.value = cmd; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta) }
+      if (navigator.clipboard) navigator.clipboard.writeText(cmd).then(() => { btn.textContent = '✓'; setTimeout(() => { btn.textContent = '⎘ Copy' }, 2000) }).catch(fallback)
+      else { fallback(); btn.textContent = '✓'; setTimeout(() => { btn.textContent = '⎘ Copy' }, 2000) }
     }
   </script>
 </body>

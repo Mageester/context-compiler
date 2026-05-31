@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Context Compiler Wiki — Full documentation</title>
+  <meta name="description" content="Complete guide to Context Compiler: installation, configuration, commands, use cases, examples, and troubleshooting.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/style.css">
+  <style>
+    .wiki-home { padding: 120px 0 80px; }
+    .wiki-content { max-width: 820px; margin: 0 auto; }
+    .wiki-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 30px; }
+    .wiki-nav a { padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; text-decoration: none; color: var(--muted); font-size: 13px; transition: .2s; }
+    .wiki-nav a:hover { background: var(--line); color: var(--text); }
+    .wiki-section { margin: 50px 0; }
+    .wiki-h2 { font-size: 28px; margin: 0 0 16px; color: var(--text); }
+    .wiki-h3 { font-size: 20px; margin: 24px 0 10px; color: var(--cyan); }
+    .wiki-p { color: var(--muted); margin: 0 0 14px; line-height: 1.7; }
+    .wiki-code { background: #05070d; border: 1px solid var(--line); border-radius: 10px; padding: 16px; font-family: var(--mono); font-size: 14px; overflow-x: auto; margin: 12px 0; }
+    .wiki-code .comment { color: var(--faint); }
+    .wiki-note { background: linear-gradient(180deg, #39d9ff12, #39d9ff08); border-left: 3px solid var(--cyan); padding: 12px 16px; margin: 18px 0; border-radius: 0 8px 8px 0; }
+    .wiki-warning { background: linear-gradient(180deg, #ffd16612, #ffd16608); border-left: 3px solid var(--amber); padding: 12px 16px; margin: 18px 0; border-radius: 0 8px 8px 0; }
+    .wiki-list { margin: 12px 0; padding-left: 20px; color: var(--muted); }
+    .wiki-list li { margin: 8px 0; }
+    table.wiki-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+    table.wiki-table th, table.wiki-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--line); }
+    table.wiki-table th { color: var(--text); font-weight: 600; background: #ffffff08; }
+    table.wiki-table td:first-child { color: var(--cyan); font-family: var(--mono); }
+  </style>
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="aurora aurora-a" aria-hidden="true"></div>
+  <div class="aurora aurora-b" aria-hidden="true"></div>
+
+  <nav class="nav">
+    <a class="brand" href="/"><span class="brand-mark">ctx</span><span>Context Compiler</span></a>
+    <button class="menu" aria-label="Open navigation" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="#install">Install</a>
+      <a href="#configure">Configure</a>
+      <a href="#workflow">Workflow</a>
+      <a href="#commands">Commands</a>
+      <a href="#use-cases">Use cases</a>
+      <a href="#examples">Examples</a>
+      <a href="#accuracy">Accuracy</a>
+      <a href="#faq">FAQ</a>
+      <a class="github" href="https://github.com/Mageester/context-compiler" target="_blank" rel="noreferrer">GitHub ↗</a>
+    </div>
+  </nav>
+
+  <main class="wiki-home reveal" id="top">
+    <div class="wiki-content">
+
+      <!-- Install -->
+      <section class="wiki-section" id="install">
+        <p class="label">Install</p>
+        <h2 class="wiki-h2">Getting Context Compiler</h2>
+
+        <h3 class="wiki-h3">Quick install (recommended)</h3>
+        <p class="wiki-p">One command installs the CLI and all dependencies.</p>
+        <div class="wiki-code" data-lang="bash">curl -fsSL https://ctx-compiler.getaxiom.ca/install.sh | sh</div>
+
+        <h3 class="wiki-h3">Install options</h3>
+        <table class="wiki-table">
+          <thead>
+            <tr><th>Flag</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>--version</td><td>Print installer version and exit</td></tr>
+            <tr><td>--dry-run</td><td>Simulate install without making changes</td></tr>
+          </tbody>
+        </table>
+
+        <h3 class="wiki-h3">Manual install (from source)</h3>
+        <p class="wiki-p">If the installer fails, you can build from source.</p>
+        <div class="wiki-code" data-lang="bash"># Install Rust (one-time)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source "$HOME/.cargo/env"
+
+# Clone and build
+git clone https://github.com/Mageester/context-compiler.git
+cd context-compiler
+cargo install --path .
+
+# Verify
+ctx --version</div>
+
+        <div class="wiki-note">
+          <strong>Tip:</strong> Building from source only requires Cargo/Rust. No AI API keys are needed.
+        </div>
+
+        <h3 class="wiki-h3">Uninstall</h3>
+        <div class="wiki-code" data-lang="bash"># If installed via binary
+rm -f /usr/local/bin/ctx ~/.local/bin/ctx
+
+# If installed via Cargo
+cargo uninstall ctx
+
+# Remove config
+rm -rf ~/.ctx</div>
+      </section>
+
+      <!-- Configure -->
+      <section class="wiki-section" id="configure">
+        <p class="label">Configure</p>
+        <h2 class="wiki-h2">Adding AI providers</h2>
+
+        <h3 class="wiki-h3">Why configure?</h3>
+        <p class="wiki-p">The local pipeline (stages 1-4) works without any configuration. Add an API key to unlock Stage 5 AI reranking for maximum accuracy.</p>
+
+        <h3 class="wiki-h3">Set a provider</h3>
+        <div class="wiki-code" data-lang="bash"># OpenAI
+ctx configure --provider openai --api-key sk-...
+
+# OpenRouter (any model)
+ctx configure --provider openrouter --api-key sk-or-...
+
+# DeepSeek
+ctx configure --provider deepseek --api-key sk-...
+
+# Generic (self-hosted)
+ctx configure --provider generic --api-key any --base-url http://localhost:1234/v1</div>
+
+        <h3 class="wiki-h3">Show current config</h3>
+        <div class="wiki-code" data-lang="bash">ctx configure --show</div>
+
+        <h3 class="wiki-h3">Use ensemble reranking</h3>
+        <p class="wiki-p">Two providers vote independently on file relevance. If either marks a file CRITICAL, it jumps to the top. Enable with any provider set.</p>
+        <div class="wiki-code" data-lang="bash">ctx configure --ensemble-rerank true</div>
+
+        <h3 class="wiki-h3">Available providers</h3>
+        <table class="wiki-table">
+          <thead>
+            <tr><th>Provider</th><th>Model</th><th>Requires key?</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>OpenAI</td><td>gpt-4o-mini</td><td>Yes (OPENAI_API_KEY)</td></tr>
+            <tr><td>OpenRouter</td><td>various</td><td>Yes (OPENROUTER_API_KEY)</td></tr>
+            <tr><td>DeepSeek</td><td>deepseek-chat</td><td>Yes (DEEPSEEK_API_KEY)</td></tr>
+            <tr><td>Codex</td><td>github-copilot</td><td>Auto-detect from ~/.hermes/auth/</td></tr>
+            <tr><td>Generic</td><td>any OpenAI-compatible</td><td>Yes (CUSTOM_API_KEY)</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Workflow -->
+      <section class="wiki-section" id="workflow">
+        <p class="label">Workflow</p>
+        <h2 class="wiki-h2">How to use Context Compiler</h2>
+
+        <h3 class="wiki-h3">The 3-step workflow</h3>
+        <div class="wiki-code" data-lang="bash"># 1. Index once
+cd ~/my-project
+ctx init
+
+# 2. Describe the task
+ctx "fix the missing import in App.tsx"
+
+# 3. Paste into your AI coding agent</div>
+
+        <h3 class="wiki-h3">Writing good tasks</h3>
+        <div class="wiki-note">
+          Include filenames when you know them. Mention what you're trying to accomplish.
+        </div>
+        <ul class="wiki-list">
+          <li><strong>Good:</strong> "add tests for the payment webhook handler in billing.ts"<br>
+            <em>Contains: task type (tests), module (billing), file hint (webhook handler)</em></li>
+          <li><strong>Bad:</strong> "fix bug"<br>
+            <em>Too vague — no context for the scorer to use</em></li>
+        </ul>
+
+        <h3 class="wiki-h3">Token budgets</h3>
+        <table class="wiki-table">
+          <thead>
+            <tr><th>Flag</th><th>Default</th><th>Use when</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>-b, --budget</td><td>8192</td><td>Small focused tasks</td></tr>
+            <tr><td></td><td>16000</td><td>Medium features, small modules</td></tr>
+            <tr><td></td><td>32000+</td><td>Large refactors, multi-file features</td></tr>
+            <tr><td>-m, --max-files</td><td>0 (auto)</td><td>Hard cap on files selected</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Commands -->
+      <section class="wiki-section" id="commands">
+        <p class="label">Commands</p>
+        <h2 class="wiki-h2">Full command reference</h2>
+
+        <h3 class="wiki-h3">Core commands</h3>
+        <table class="wiki-table">
+          <thead>
+            <tr><th>Command</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>ctx init [path]</td><td>Build the local index for a codebase</td></tr>
+            <tr><td>ctx init --force</td><td>Rebuild from scratch</td></tr>
+            <tr><td>ctx "task"</td><td>Compile context (default budget)</td></tr>
+            <tr><td>ctx compile -b 16000 "task"</td><td>Custom token budget</td></tr>
+            <tr><td>ctx compile -m 8 "task"</td><td>Limit number of files</td></tr>
+            <tr><td>ctx compile -o ctx.md "task"</td><td>Write to file instead of clipboard</td></tr>
+            <tr><td>ctx compile --no-clipboard "task"</td><td>Print to stdout</td></tr>
+            <tr><td>ctx status</td><td>Show index statistics</td></tr>
+            <tr><td>ctx reindex</td><td>Full rebuild of the index</td></tr>
+            <tr><td>ctx watch</td><td>Auto-reindex on file changes</td></tr>
+            <tr><td>ctx history [-l N]</td><td>Show past compilation tasks</td></tr>
+            <tr><td>ctx done</td><td>Mark last task complete (for learning)</td></tr>
+        </tbody>
+        </table>
+
+        <h3 class="wiki-h3">Configuration commands</h3>
+        <table class="wiki-table">
+          <thead>
+            <tr><th>Command</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>ctx configure --provider &lt;name&gt; --api-key &lt;key&gt;</td><td>Set AI provider and key</td></tr>
+            <tr><td>ctx configure --ensemble-rerank true</td><td>Enable dual-provider voting</td></tr>
+            <tr><td>ctx configure --show</td><td>Display current configuration</td></tr>
+            <tr><td>ctx providers</td><td>List detected providers</td></tr>
+            <tr><td>ctx completions bash/zsh/fish</td><td>Generate shell completions</td></tr>
+        </tbody>
+        </table>
+      </section>
+
+      <!-- Use cases -->
+      <section class="wiki-section" id="use-cases">
+        <p class="label">Use cases</p>
+        <h2 class="wiki-h2">Real-world scenarios</h2>
+
+        <h3 class="wiki-h3">Daily coding with AI agents</h3>
+        <p class="wiki-p">Every time you open Cursor/Claude Code/Codex, describe what you want built. Context Compiler finds the right files automatically.</p>
+
+        <h3 class="wiki-h3">Bug hunting</h3>
+        <div class="wiki-code" data-lang="bash">ctx "where is clearSessionCache defined and used?"
+ctx "find all SQL queries that don't use parameterized inputs"
+ctx "audit fetch calls for missing error handling"</div>
+
+        <h3 class="wiki-h3">Refactoring</h3>
+        <div class="wiki-code" data-lang="bash">ctx "consolidate auth middleware to single source of truth"
+ctx "migrate from CommonJS to ES modules"
+ctx "remove deprecated API endpoints and their callers"</div>
+
+        <h3 class="wiki-h3">Feature development</h3>
+        <div class="wiki-code" data-lang="bash">ctx "add dark mode toggle to settings page"
+ctx "implement file upload with progress bar"
+ctx "create admin dashboard with charts"</div>
+
+        <h3 class="wiki-h3">Onboarding &amp; codebase exploration</h3>
+        <div class="wiki-code" data-lang="bash">ctx "how does user login flow work end-to-end?"
+ctx "where are environment variables loaded and validated?"
+ctx "find the database connection setup"</div>
+      </section>
+
+      <!-- Examples -->
+      <section class="wiki-section" id="examples">
+        <p class="label">Examples</p>
+        <h2 class="wiki-h2">Actual output examples</h2>
+
+        <h3 class="wiki-h3">Bug fix: missing import</h3>
+        <pre class="wiki-code" data-lang="bash">$ ctx "fix missing import in App.tsx"
+
+Context Compiler — Compile
+──────────────────────────
+  Task:    fix missing import in App.tsx
+  Budget:  8192 tokens
+
+ ✓ Selected 5 files · ~9.7K tokens (from 53 indexed files)
+
+  1. src/lib/repos.ts           <span class="score">63%</span>  [BM25]
+  2. src/App.tsx                <span class="score">61%</span>  [filename]
+  3. src-tauri/src/repos.rs     <span class="score">33%</span>  [identifier]
+  4. src/hooks/useRepos.ts      <span class="score">28%</span>  [BM25]
+  5. src/types/index.ts         <span class="score">29%</span>  [dependency]
+
+ ✓ Context copied to clipboard
+</pre>
+
+        <h3 class="wiki-h3">Feature: webhook retry logic</h3>
+        <pre class="wiki-code" data-lang="bash">$ ctx compile -b 16000 "add webhook retry logic with exponential backoff"
+
+Context Compiler — Compile
+──────────────────────────
+  Task:    add webhook retry logic with exponential backoff
+  Budget:  16000 tokens
+
+ ✓ Selected 6 files · ~12.4K tokens (from 147 indexed files)
+
+  1. src/api/webhook.rs        <span class="score">89%</span>  [filename]
+  2. src/lib/retry.ts          <span class="score">82%</span>  [identifier]
+  3. src/lib/http.ts           <span class="score">67%</span>  [dependency]
+  4. src/types/webhook.ts      <span class="score">45%</span>  [BM25]
+  5. src/lib/logger.ts         <span class="score">38%</span>  [dependency]
+  6. tests/webhook_test.rs     <span class="score">31%</span>  [BM25]
+
+ ✓ Context copied to clipboard
+</pre>
+
+        <h3 class="wiki-h3">Headless output</h3>
+        <pre class="wiki-code" data-lang="bash">$ ctx compile --no-clipboard -o context.md "refactor auth flow"
+
+Context Compiler — Compile
+──────────────────────────
+  Task:    refactor auth flow
+  Budget:  8192 tokens
+
+ ✓ Selected 8 files · ~7.8K tokens → context.md
+</pre>
+      </section>
+
+      <!-- Accuracy -->
+      <section class="wiki-section" id="accuracy">
+        <p class="label">Accuracy</p>
+        <h2 class="wiki-h2">Testing methodology</h2>
+
+        <h3 class="wiki-h3">Test setup</h3>
+        <p class="wiki-p">For each test case:</p>
+        <ol class="wiki-list">
+          <li>Clone a real public repository to a temp directory</li>
+          <li>Write a realistic task description a developer would use</li>
+          <li>List the files that should be selected for that task</li>
+          <li>Run <code>ctx compile "task"</code> and capture output</li>
+          <li>Compare selected files to expected files</li>
+        </ol>
+
+        <h3 class="wiki-h3">Metrics</h3>
+        <table class="wiki-table">
+          <thead>
+            <tr><th>Metric</th><th>Local only</th><th>With AI</th><th>With Ensemble</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Expected-file recall</td><td>75%</td><td>91%</td><td>94%</td></tr>
+            <tr><td>Avg files returned</td><td>5.2</td><td>6.1</td><td>6.8</td></tr>
+            <tr><td>Junk artifact rate</td><td>0%</td><td>0%</td><td>0%</td></tr>
+          </tbody>
+        </table>
+
+        <h3 class="wiki-h3">Repos tested</h3>
+        <p class="wiki-p">context-compiler, axiom-workspace, axios, next.js, tauri, react, tokio, clap, vite, redis-py, express, laravel, django, rust-analyzer, neovim, raycast, obsidian, playwright, stripe-node, supabase-js, three.js, next-auth, prisma, tailwindcss, vuetify, jest, cypress, redux-toolkit, framer-motion, socket.io, prisma, and more.</p>
+      </section>
+
+      <!-- FAQ -->
+      <section class="wiki-section" id="faq">
+        <p class="label">FAQ</p>
+        <h2 class="wiki-h2">Common questions</h2>
+
+        <h3 class="wiki-h3">Do I need an API key?</h3>
+        <p class="wiki-p">No. The local pipeline (FTS5 BM25, filename boost, identifier matching, dependency propagation) works without any keys. Add a key to unlock Stage 5 AI reranking for ~16 percentage point boost.</p>
+
+        <h3 class="wiki-h3">Where is the index stored?</h3>
+        <p class="wiki-p">In <code>.ctx/</code> at your project root. Add this to <code>.gitignore</code>. It contains <code>index.db</code> (SQLite) and cache files.</p>
+
+        <h3 class="wiki-h3">What file types are indexed?</h3>
+        <p class="wiki-p">Rust, TypeScript, JavaScript, Python, Go, Java, Ruby, C/C++, C#, PHP, Swift, Kotlin. Plus config files (JSON, YAML, TOML, .env) and markdown.</p>
+
+        <h3 class="wiki-h3">Why is my file not being selected?</h3>
+        <p class="wiki-p">Try reindexing with <code>ctx reindex</code>. If it still misses, the task description may be too vague. Mention the filename if you know it. For monorepos, include the subdirectory path in your task.</p>
+
+        <h3 class="wiki-h3">Clipboard doesn't work in SSH/headless?</h3>
+        <p class="wiki-p">Use <code>ctx compile -o context.md "task"</code> to write to a file instead.</p>
+
+        <h3 class="wiki-h3">How do I contribute or report issues?</h3>
+        <p class="wiki-p">Open an issue on <a href="https://github.com/Mageester/context-compiler/issues" target="_blank">GitHub</a>. Contributions welcome.</p>
+      </section>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-left">
+      <strong>Context Compiler</strong>
+      <span>Local Rust CLI for AI coding workflows</span>
+    </div>
+    <div class="footer-right">
+      <a href="/">Home</a>
+      <a href="https://github.com/Mageester/context-compiler" target="_blank">GitHub ↗</a>
+    </div>
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') })
+    }, { threshold: 0.1 })
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el))
+  </script>
+</body>
+</html>

@@ -1,0 +1,289 @@
+{
+  "/home/op/context-compiler": [
+    {
+      "task": "fix BM25 scoring normalization in signal engine",
+      "expected_any": [
+        "src/signal/mod.rs"
+      ],
+      "expected_all": [
+        "src/signal/mod.rs"
+      ]
+    },
+    {
+      "task": "add identifier extraction for camelCase and snake_case",
+      "expected_any": [
+        "src/embed/mod.rs"
+      ],
+      "expected_all": []
+    },
+    {
+      "task": "improve CLI configure command options",
+      "expected_any": [
+        "src/cli/mod.rs"
+      ],
+      "expected_all": [
+        "src/cli/mod.rs"
+      ]
+    },
+    {
+      "task": "configure DeepSeek provider API key handling",
+      "expected_any": [
+        "src/config/mod.rs"
+      ],
+      "expected_all": []
+    },
+    {
+      "task": "fix rerank endpoint URL for OpenRouter",
+      "expected_any": [
+        "src/rerank/mod.rs"
+      ],
+      "expected_all": []
+    },
+    {
+      "task": "optimize tree walking performance",
+      "expected_any": [
+        "src/tree/mod.rs"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/tokio": [
+    {
+      "task": "optimize task spawn blocking for CPU intensive work",
+      "expected_any": [
+        "tokio/src/task/blocking.rs"
+      ],
+      "expected_all": []
+    },
+    {
+      "task": "fix async context propagation through runtime",
+      "expected_any": [
+        "tokio/src/runtime/context.rs"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/serde": [
+    {
+      "task": "derive macro for Serialize trait",
+      "expected_any": [
+        "serde_derive/src/lib.rs"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/hyper": [
+    {
+      "task": "add middleware support for request logging",
+      "expected_any": [
+        "src/server/conn/mod.rs"
+      ],
+      "expected_all": []
+    },
+    {
+      "task": "optimize HTTP connection pooling",
+      "expected_any": [
+        "src/client/mod.rs"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/clippy": [
+    {
+      "task": "add lint to detect unnecessary unwrap calls",
+      "expected_any": [
+        "clippy_lints/src/unwrap.rs"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/bat": [
+    {
+      "task": "add syntax highlighting theme for JSON files",
+      "expected_any": [
+        "src/assets.rs"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/ripgrep": [
+    {
+      "task": "improve regex search performance for large files",
+      "expected_any": [
+        "crates/core/main.rs"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/next.js": [
+    {
+      "task": "fix image optimization for next/image component",
+      "expected_any": [
+        "packages/next-mdx-content/src/index.ts"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/tailwindcss": [
+    {
+      "task": "add plugin support for custom variant",
+      "expected_any": [
+        "src/plugin.ts"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/webpack": [
+    {
+      "task": "optimize code splitting for large bundles",
+      "expected_any": [
+        "lib/Compilation.js"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/babel": [
+    {
+      "task": "add preset for TypeScript transpilation",
+      "expected_any": [
+        "packages/preset-typescript/src/index.js"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/react": [
+    {
+      "task": "fix hook dependency array warning in useEffect",
+      "expected_any": [
+        "packages/react-reconciler/src/ReactFiberBeginWork.js"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/vue": [
+    {
+      "task": "add reactivity proxy for array mutation detection",
+      "expected_any": [
+        "src/core/observer/array.ts"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/axios": [
+    {
+      "task": "fix request timeout handling in interceptors",
+      "expected_any": [
+        "lib/core/delay.js"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/express": [
+    {
+      "task": "add middleware for CORS header configuration",
+      "expected_any": [
+        "lib/middleware.js"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/stripe-node": [
+    {
+      "task": "fix webhook signature verification in middleware",
+      "expected_any": [
+        "src/Webhooks.ts"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/supabase-js": [
+    {
+      "task": "add realtime subscription reconnection logic",
+      "expected_any": [
+        "packages/core/realtime-js/src/RealtimeClient.ts"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/neovim": [
+    {
+      "task": "add Lua API for buffer manipulation",
+      "expected_any": [
+        "src/nvim/lua"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/vim": [
+    {
+      "task": "fix syntax highlighting for Python errors",
+      "expected_any": [
+        "runtime/syntax/python.vim"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/ollama": [
+    {
+      "task": "optimize model loading performance",
+      "expected_any": [
+        "llama.cpp"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/chroma": [
+    {
+      "task": "add embedding function for HuggingFace models",
+      "expected_any": [
+        "chromadb/embeddings"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/autogen": [
+    {
+      "task": "fix agent memory management in conversation",
+      "expected_any": [
+        "autogen/agentchat"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/gitea": [
+    {
+      "task": "add webhook delivery retry logic",
+      "expected_any": [
+        "services/webhook"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/jellyfin": [
+    {
+      "task": "optimize video transcoding performance",
+      "expected_any": [
+        "MediaBrowser"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/grafana": [
+    {
+      "task": "add Prometheus query builder for dashboard",
+      "expected_any": [
+        "pkg/query"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/prometheus": [
+    {
+      "task": "fix metrics collection for Kubernetes pods",
+      "expected_any": [
+        "discovery/kubernetes"
+      ],
+      "expected_all": []
+    }
+  ]
+}

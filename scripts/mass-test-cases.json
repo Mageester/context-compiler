@@ -1,0 +1,193 @@
+{
+  "/home/op/axiom-workspace": [
+    {
+      "task": "fix the race condition in auth middleware",
+      "expected_any": [
+        "src-tauri/src/auth/mod.rs"
+      ],
+      "expected_all": []
+    },
+    {
+      "task": "update repository discovery modal layout and styling",
+      "expected_any": [
+        "src/pages/ReposPage.tsx"
+      ],
+      "expected_all": []
+    },
+    {
+      "task": "add webhook retry logic to billing handler",
+      "expected_any": [
+        "src-tauri/src/lib.rs"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/home/op/context-compiler": [
+    {
+      "task": "fix BM25 scoring normalization in signal engine",
+      "expected_any": [
+        "src/signal/mod.rs"
+      ],
+      "expected_all": [
+        "src/signal/mod.rs"
+      ]
+    },
+    {
+      "task": "add identifier extraction for camelCase and snake_case",
+      "expected_any": [
+        "src/embed/mod.rs",
+        "src/index/mod.rs"
+      ],
+      "expected_all": []
+    },
+    {
+      "task": "improve CLI configure command options",
+      "expected_any": [
+        "src/cli/mod.rs",
+        "src/main.rs"
+      ],
+      "expected_all": [
+        "src/cli/mod.rs"
+      ]
+    }
+  ],
+  "/tmp/ctx-test-repos/tokio": [
+    {
+      "task": "optimize task spawn blocking for CPU intensive work",
+      "expected_any": [
+        "tokio/src/task/blocking.rs",
+        "tokio/src/task/spawn_blocking.rs"
+      ],
+      "expected_all": []
+    },
+    {
+      "task": "fix async context propagation through runtime",
+      "expected_any": [
+        "tokio/src/runtime/context.rs"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/serde": [
+    {
+      "task": "add deserialize implementation for custom struct",
+      "expected_any": [
+        "serde/src/lib.rs"
+      ],
+      "expected_all": []
+    },
+    {
+      "task": "fix forward compatibility for unknown enum variants",
+      "expected_any": [
+        "serde_derive/src/de/enum_.rs"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/hyper": [
+    {
+      "task": "add middleware support for request logging",
+      "expected_any": [
+        "src/server/conn/mod.rs"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/clippy": [
+    {
+      "task": "add lint to detect unnecessary unwrap calls",
+      "expected_any": [
+        "clippy_lints/src/unwrap.rs"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/bat": [
+    {
+      "task": "add syntax highlighting theme for JSON files",
+      "expected_any": [
+        "src/assets.rs"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/ripgrep": [
+    {
+      "task": "improve regex search performance for large files",
+      "expected_any": [
+        "crates/core/main.rs"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/react": [
+    {
+      "task": "fix hook dependency array warning in useEffect",
+      "expected_any": [
+        "packages/react-reconciler/src/ReactFiberBeginWork.js"
+      ],
+      "expected_all": []
+    },
+    {
+      "task": "optimize re-render performance with memoized components",
+      "expected_any": [
+        "packages/react-reconciler/src/ReactFiberBeginWork.js"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/vue": [
+    {
+      "task": "add reactivity proxy for array mutation detection",
+      "expected_any": [
+        "src/core/observer/array.ts"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/axios": [
+    {
+      "task": "fix request timeout handling in interceptors",
+      "expected_any": [
+        "lib/core/delay.js"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/express": [
+    {
+      "task": "add middleware for CORS header configuration",
+      "expected_any": [
+        "lib/middleware.js"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/nextjs-auth0": [
+    {
+      "task": "configure session cookie settings for production",
+      "expected_any": [
+        "src/session"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/stripe-node": [
+    {
+      "task": "fix webhook signature verification in middleware",
+      "expected_any": [
+        "src/Webhooks.ts"
+      ],
+      "expected_all": []
+    }
+  ],
+  "/tmp/ctx-test-repos/supabase-js": [
+    {
+      "task": "add realtime subscription reconnection logic",
+      "expected_any": [
+        "packages/core/realtime-js/src/RealtimeClient.ts"
+      ],
+      "expected_all": []
+    }
+  ]
+}
